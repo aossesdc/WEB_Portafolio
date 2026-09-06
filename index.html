@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLA Control | Bienvenida</title>
+    <link rel="stylesheet" href="css/welcome.css">
+    <link rel="stylesheet" href="css/preferencias-globales.css">
+    <style>
+        .account-card-text strong { color: #101820; }
+        .account-card-text small { color: #4b5868; }
+        .account-arrow { color: #425166; font-weight: 700; }
+        .theme-dark .account-card-text strong { color: #101820; }
+        .theme-dark .account-card-text small { color: #4b5868; }
+    </style>
+</head>
+
+<body class="welcome-page theme-dark">
+    <header class="welcome-header">
+        <a class="brand" href="index.html"><span class="brand-mark">SLA</span><span>SLA Control</span></a>
+        <div class="welcome-header-actions">
+            <div class="welcome-display-actions">
+                <div class="font-menu-wrap">
+                <button class="font-menu-toggle" type="button" aria-label="Personalizar fuente" title="Personalizar fuente" aria-expanded="false" onclick="toggleFontMenu()"><span aria-hidden="true">Aa</span></button>
+                <div class="font-menu" role="dialog" aria-label="Personalizar tipografia">
+                    <strong>Personalizar texto</strong>
+                    <label for="heading-size">Tamano de titulos</label>
+                    <select id="heading-size" onchange="updateTypography()">
+                        <option value="normal" selected>Normal</option>
+                        <option value="large">Grande</option>
+                        <option value="extra-large">Muy grande</option>
+                    </select>
+                    <label for="body-size">Tamano del texto</label>
+                    <select id="body-size" onchange="updateTypography()">
+                        <option value="normal" selected>Normal</option>
+                        <option value="large">Grande</option>
+                        <option value="extra-large">Muy grande</option>
+                    </select>
+                </div>
+                </div>
+                <button class="theme-toggle" type="button" aria-label="Activar modo oscuro" title="Cambiar tema" onclick="toggleTheme()"><span class="theme-icon" aria-hidden="true">&#9790;</span></button>
+            </div>
+            <button class="mobile-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" title="Abrir menu" onclick="toggleMobileMenu()"><span></span><span></span><span></span></button>
+            <div class="auth-links">
+                <a class="header-register" href="html/registro_cliente.html">Registrarse</a>
+                <a class="header-login" href="html/login_cliente.html">Iniciar sesion</a>
+            </div>
+        </div>
+    </header>
+    <main class="welcome-main">
+        <section class="welcome-hero">
+            <p class="eyebrow">Plataforma de gestión de servicios</p>
+            <h1>El control de tus tickets,<br><em>en un solo lugar.</em></h1>
+            <p class="welcome-copy">Gestiona solicitudes, mide el cumplimiento de tus acuerdos SLA y toma decisiones antes de que un riesgo se convierta en incumplimiento.</p>
+        </section>
+        <section class="account-section" aria-labelledby="account-title">
+            <div class="section-heading"><p class="eyebrow">Comienza aqui</p><h2 id="account-title">Selecciona tu tipo de cuenta</h2><p>Elige el acceso correspondiente para continuar.</p></div>
+            <div class="account-options">
+                <a class="account-card admin-card" href="html/login_ejecutivo.html"><span class="account-icon">+</span><span class="account-card-text"><strong>Ejecutivo</strong><small>Gestiona operaciones, riesgos SLA, clientes y reportes.</small></span><span class="account-arrow">-></span></a>
+                <a class="account-card client-card" href="html/login_cliente.html"><span class="account-icon">#</span><span class="account-card-text"><strong>Cliente</strong><small>Crea y consulta tus tickets, avances y tiempos comprometidos.</small></span><span class="account-arrow">-></span></a>
+                <a class="account-card administrator-card" href="html/login_administrador.html"><span class="account-icon">*</span><span class="account-card-text"><strong>Administrador</strong><small>Configura usuarios, contratos, reglas SLA y permisos del sistema.</small></span><span class="account-arrow">-></span></a>
+            </div>
+        </section>
+        <section class="welcome-features" aria-label="Funciones de la plataforma"><article><span class="feature-number">01</span><h3>Monitoreo SLA</h3><p>Conoce el consumo de tiempo de cada solicitud en tiempo real.</p></article><article><span class="feature-number">02</span><h3>Evaluacion de riesgo</h3><p>Prioriza automaticamente los tickets proximos a incumplir.</p></article><article><span class="feature-number">03</span><h3>Reportes exactos</h3><p>Analiza el cumplimiento y exporta resultados para tu equipo.</p></article></section>
+        <a class="help-primary-link welcome-help-link" href="html/ayuda.html">Abrir centro de ayuda <span aria-hidden="true">-></span></a>
+    </main>
+    <footer class="welcome-footer"><span>SLA Control</span><span>Gestion inteligente de tickets y acuerdos de servicio</span><span>Sesion protegida</span></footer>
+    <script>
+        const savedTheme = localStorage.getItem('sla-theme');
+        const isDarkByDefault = savedTheme !== 'light';
+        if (!isDarkByDefault) document.body.classList.remove('theme-dark');
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('theme-dark');
+            document.body.classList.toggle('global-theme-dark', isDark);
+            document.body.classList.toggle('global-theme-light', !isDark);
+            localStorage.setItem('sla-theme', isDark ? 'dark' : 'light');
+            const button = document.querySelector('.theme-toggle');
+            button.setAttribute('aria-label', isDark ? 'Activar modo claro' : 'Activar modo oscuro');
+            button.querySelector('.theme-icon').textContent = isDark ? '\u2600' : '\u263E';
+            button.title = isDark ? 'Activar modo claro' : 'Activar modo oscuro';
+        }
+
+        document.querySelector('.theme-icon').textContent = isDarkByDefault ? '\u2600' : '\u263E';
+        document.querySelector('.theme-toggle').setAttribute('aria-label', isDarkByDefault ? 'Activar modo claro' : 'Activar modo oscuro');
+        document.querySelector('.theme-toggle').title = isDarkByDefault ? 'Activar modo claro' : 'Activar modo oscuro';
+        document.body.classList.add(isDarkByDefault ? 'global-theme-dark' : 'global-theme-light');
+
+        const savedTypography = JSON.parse(localStorage.getItem('sla-typography') || '{"heading":"normal","body":"normal"}');
+        if (savedTypography.heading === 'small') savedTypography.heading = 'normal';
+        if (savedTypography.body === 'small') savedTypography.body = 'normal';
+        if (savedTypography) {
+            document.getElementById('heading-size').value = savedTypography.heading;
+            document.getElementById('body-size').value = savedTypography.body;
+            updateTypography();
+        }
+
+        function toggleFontMenu() {
+            const menu = document.querySelector('.font-menu');
+            const button = document.querySelector('.font-menu-toggle');
+            const isOpen = menu.classList.toggle('open');
+            menu.style.display = isOpen ? 'block' : 'none';
+            button.setAttribute('aria-expanded', isOpen);
+        }
+
+        function toggleMobileMenu() {
+            const actions = document.querySelector('.welcome-header-actions');
+            const button = document.querySelector('.mobile-menu-toggle');
+            const isOpen = actions.classList.toggle('mobile-open');
+            button.setAttribute('aria-expanded', isOpen);
+            button.setAttribute('aria-label', isOpen ? 'Cerrar menu' : 'Abrir menu');
+            button.title = isOpen ? 'Cerrar menu' : 'Abrir menu';
+        }
+
+        function updateTypography() {
+            const heading = document.getElementById('heading-size').value;
+            const body = document.getElementById('body-size').value;
+            document.documentElement.style.setProperty('--welcome-heading-scale', heading === 'large' ? '1.12' : heading === 'extra-large' ? '1.25' : '1');
+            document.documentElement.style.setProperty('--welcome-body-scale', body === 'large' ? '1.1' : body === 'extra-large' ? '1.2' : '1');
+            localStorage.setItem('sla-typography', JSON.stringify({ heading, body }));
+        }
+    </script>
+    <script src="js/preferencias-globales.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard cliente | SLA Control</title>
+    <link rel="stylesheet" href="../css/cliente-dashboard.css">
+    <link rel="stylesheet" href="../css/preferencias-globales.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header class="topbar">
+            <a class="brand brand-with-mark" href="../index.html"><span class="brand-mark">SLA</span><span>SLA Control</span></a>
+            <div class="user-box">
+                <div class="avatar" id="avatar">CM</div>
+                <div><strong id="user-name">Carlos Medina</strong><br><small id="user-role">Cliente corporativo</small></div>
+                <a class="logout" href="../index.html" onclick="localStorage.removeItem('sla-client-user')">Cerrar sesión</a>
+            </div>
+        </header>
+
+        <section class="client-hero">
+            <div><p class="eyebrow">Portal de cliente</p><h1>Seguimiento de tus servicios</h1><p>Consulta el estado de tus solicitudes, tiempos comprometidos y equipos bajo cobertura.</p></div>
+            <span class="status-pill">Servicio activo</span>
+        </section>
+
+        <section class="stats" aria-label="Resumen de tickets">
+            <article class="stat-card"><span class="stat-label">Tickets activos</span><div class="stat-value">4</div></article>
+            <article class="stat-card"><span class="stat-label">En proceso</span><div class="stat-value">2</div></article>
+            <article class="stat-card"><span class="stat-label">Resueltos este mes</span><div class="stat-value">8</div></article>
+            <article class="stat-card"><span class="stat-label">SLA cumplido</span><div class="stat-value">96%</div></article>
+        </section>
+
+        <section class="panel active-tickets-panel">
+            <div class="section-heading"><div><p class="eyebrow">Seguimiento en tiempo real</p><h2>Solicitudes en curso</h2></div><span class="live-label">● Actualizado ahora</span></div>
+            <div class="table-wrap">
+                <table class="active-tickets">
+                    <thead><tr><th>Folio</th><th>Sucursal</th><th>Hardware / servicio</th><th>Técnico a cargo</th><th>Estado</th><th>SLA restante</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>INC-2116</strong></td><td>Santiago Centro</td><td>Servidor · Soporte presencial</td><td>Daniel Soto</td><td><span class="status warn">En Proceso</span></td><td><div class="time-remaining warning">02:14:00</div><small>67% consumido</small></td></tr>
+                        <tr><td><strong>INC-2085</strong></td><td>Providencia</td><td>Redes · Soporte remoto</td><td>Paula Ríos</td><td><span class="status good">En Proceso</span></td><td><div class="time-remaining safe">08:30:00</div><small>42% consumido</small></td></tr>
+                        <tr><td><strong>INC-2041</strong></td><td>Las Condes</td><td>Estación de trabajo</td><td>Hugo Ortega</td><td><span class="status good">Resuelto</span></td><td><div class="time-remaining safe">Cerrado</div><small>Resuelto dentro del SLA</small></td></tr>
+                        <tr><td><strong>INC-1998</strong></td><td>Vitacura</td><td>Impresora · Mantención</td><td>Daniel Soto</td><td><span class="status danger">Pausado</span></td><td><div class="time-remaining critical">00:48:00</div><small>91% consumido</small></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="client-grid">
+            <section class="panel history-panel">
+                <div class="section-heading"><div><p class="eyebrow">CU21</p><h2>Historial de atención y resoluciones</h2></div></div>
+                <div class="filters"><label class="field"><span>Desde</span><input type="date" value="2026-08-01"></label><label class="field"><span>Hasta</span><input type="date" value="2026-08-31"></label><label class="field"><span>Sucursal</span><select><option>Todas</option><option>Santiago Centro</option><option>Providencia</option></select></label><label class="field"><span>Estado</span><select><option>Todos</option><option>Resuelto</option><option>Cerrado</option></select></label></div>
+                <div class="history-list">
+                    <button class="history-item" type="button" data-detail="INC-2041"><span><strong>INC-2041 · Las Condes</strong><small>Resuelto · 12/08/2026 16:42</small></span><b>Ver bitácora</b></button>
+                    <button class="history-item" type="button" data-detail="INC-1987"><span><strong>INC-1987 · Santiago Centro</strong><small>Cerrado · 05/08/2026 11:18</small></span><b>Ver bitácora</b></button>
+                    <button class="history-item" type="button" data-detail="REQ-442"><span><strong>REQ-442 · Providencia</strong><small>Resuelto · 29/07/2026 14:05</small></span><b>Ver bitácora</b></button>
+                </div>
+                <div class="resolution-detail" id="resolution-detail" hidden></div>
+            </section>
+
+            <aside class="panel contract-panel">
+                <p class="eyebrow">Contrato vigente</p><h2>Resumen de servicio</h2>
+                <dl class="contract-list"><div><dt>Contrato</dt><dd>CT-2026-001 · Premium</dd></div><div><dt>Horario de atención</dt><dd>Lunes a viernes, 08:00 a 18:00</dd></div><div><dt>Respuesta máxima</dt><dd>2 horas</dd></div><div><dt>Resolución máxima</dt><dd>8 horas según prioridad</dd></div></dl>
+            </aside>
+        </section>
+
+        <section class="client-grid bottom-grid">
+            <section class="panel branches-panel"><p class="eyebrow">Cobertura registrada</p><h2>Sucursales y equipos</h2><div class="branch-list"><article><strong>Santiago Centro</strong><small>Av. Providencia 1234</small><span>12 equipos · Servidores, redes</span></article><article><strong>Providencia</strong><small>Av. Apoquindo 4501</small><span>8 equipos · Redes, estaciones</span></article><article><strong>Las Condes</strong><small>Av. El Bosque 210</small><span>6 equipos · Estaciones, impresoras</span></article></div></section>
+            <aside class="panel notice-panel"><p class="eyebrow">Información</p><h2>Últimas actualizaciones</h2><ul class="notice-list"><li><strong>INC-2116</strong><span>Técnico trabajando en la incidencia</span><small>Hace 18 min</small></li><li><strong>INC-2041</strong><span>Solución aplicada y ticket cerrado</span><small>12/08/2026</small></li></ul></aside>
+        </section>
+    </div>
+    <script>
+        const user = JSON.parse(localStorage.getItem('sla-client-user') || '{}');
+        if (user.name) { document.getElementById('user-name').textContent = user.name; document.getElementById('user-role').textContent = user.profile || 'Cliente corporativo'; document.getElementById('avatar').textContent = user.name.split(' ').map(part => part[0]).slice(0, 2).join('').toUpperCase(); }
+        const details = { 'INC-2041': 'Se reemplazó la fuente de poder y se validó la conectividad del equipo. Cerrado el 12/08/2026 a las 16:42.', 'INC-1987': 'Se actualizó el controlador de red y se comprobó el acceso a los servicios. Cerrado el 05/08/2026 a las 11:18.', 'REQ-442': 'Se realizó mantenimiento preventivo y limpieza de componentes. Resuelto el 29/07/2026 a las 14:05.' };
+        document.querySelectorAll('.history-item').forEach(item => item.addEventListener('click', () => { const detail = document.getElementById('resolution-detail'); detail.hidden = false; detail.innerHTML = `<strong>Bitácora ${item.dataset.detail}</strong><p>${details[item.dataset.detail]}</p>`; }));
+    </script>
+    <script src="../js/preferencias-globales.js"></script>
+</body>
+</html>

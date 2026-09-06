@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard administrador | SLA Control</title>
+    <link rel="stylesheet" href="../css/administrador-dashboard.css">
+    <link rel="stylesheet" href="../css/preferencias-globales.css">
+</head>
+<body>
+    <div class="admin-shell">
+        <aside class="sidebar">
+            <div class="brand-wrap">
+                <div class="brand-mark">SLA</div>
+                <div>
+                    <div class="brand-name">SLA Control</div>
+                    <small>Administración</small>
+                </div>
+            </div>
+
+            <nav class="side-nav" id="side-nav"></nav>
+        </aside>
+
+        <main class="main-panel">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">Plataforma secundaria</p>
+                    <h1>Panel de administración</h1>
+                </div>
+                <div class="user-box">
+                    <div class="avatar" id="avatar">ML</div>
+                    <div>
+                        <strong id="user-name">María López</strong><br>
+                        <small id="user-role">Administrador general</small>
+                    </div>
+                    <a class="logout" href="../index.html" onclick="localStorage.removeItem('sla-admin-user')">Cerrar sesión</a>
+                </div>
+            </header>
+
+            <section class="stats-grid dashboard-overview">
+                <article class="stat-card accent">
+                    <span class="stat-label">Usuarios</span>
+                    <strong class="stat-value">1.284</strong>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-label">Clientes</span>
+                    <strong class="stat-value">124</strong>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-label">Contratos</span>
+                    <strong class="stat-value">86</strong>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-label">SLA cumplido</span>
+                    <strong class="stat-value">94%</strong>
+                </article>
+            </section>
+
+            <section class="risk-overview dashboard-overview" aria-label="riesgo de incumplimiento">
+                <article class="risk-card">
+                    <h3>Ticket INC-2048</h3>
+                    <span class="risk-badge critical" data-consumed="91">Crítico · 91%</span>
+                    <div class="risk-meter"><span class="active"></span><span class="active"></span><span class="active"></span></div>
+                </article>
+                <article class="risk-card">
+                    <h3>Ticket SVC-774</h3>
+                    <span class="risk-badge medium" data-consumed="68">Medio · 68%</span>
+                    <div class="risk-meter"><span class="active"></span><span class="active"></span><span></span></div>
+                </article>
+                <article class="risk-card">
+                    <h3>Ticket LOG-315</h3>
+                    <span class="risk-badge low" data-consumed="41">Bajo · 41%</span>
+                    <div class="risk-meter"><span class="active"></span><span></span><span></span></div>
+                </article>
+            </section>
+
+            <section class="report-panel dashboard-overview">
+                <div class="module-header">
+                    <div>
+                        <p class="eyebrow">RF-07</p>
+                        <h2>Reportes gerenciales</h2>
+                    </div>
+                    <div class="report-downloads" aria-label="Descargar reportes">
+                        <button class="secondary-btn" type="button" data-report-download="pdf">Descargar PDF</button>
+                        <button class="primary-btn" type="button" data-report-download="xls">Descargar XLS</button>
+                    </div>
+                </div>
+
+                <div class="report-controls">
+                    <label class="field">
+                        <span>Fecha inicio</span>
+                        <input type="date" id="report-start" value="2026-08-01">
+                    </label>
+                    <label class="field">
+                        <span>Fecha fin</span>
+                        <input type="date" id="report-end" value="2026-08-31">
+                    </label>
+                    <label class="field">
+                        <span>Cliente</span>
+                        <select id="report-client">
+                            <option value="all">Todos</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="report-grid">
+                    <article class="report-card">
+                        <h3>Reporte de Cumplimiento de SLA</h3>
+                        <div class="report-summary">
+                            <div class="report-metric">
+                                <span>Cumplimiento</span>
+                                <strong id="sla-rate">0%</strong>
+                            </div>
+                            <div class="report-metric">
+                                <span>Tickets</span>
+                                <strong id="sla-tickets">0</strong>
+                            </div>
+                            <div class="report-metric">
+                                <span>Alertas</span>
+                                <strong id="sla-alerts">0</strong>
+                            </div>
+                        </div>
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>SLA</th>
+                                    <th>Tickets</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sla-table"></tbody>
+                        </table>
+                    </article>
+
+                    <article class="report-card">
+                        <h3>Reporte de Tiempos Medios de Reparación y Multas Evitadas</h3>
+                        <div class="report-summary">
+                            <div class="report-metric">
+                                <span>MTTR</span>
+                                <strong id="repair-mttr">0h</strong>
+                            </div>
+                            <div class="report-metric">
+                                <span>Multas evitadas</span>
+                                <strong id="repair-fines">$0</strong>
+                            </div>
+                            <div class="report-metric">
+                                <span>Promedio</span>
+                                <strong id="repair-avg">0%</strong>
+                            </div>
+                        </div>
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>MTTR</th>
+                                    <th>Multas evitadas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="repair-table"></tbody>
+                        </table>
+                    </article>
+                </div>
+            </section>
+
+            <section class="module-panel">
+                <div class="module-header">
+                    <div>
+                        <p class="eyebrow">RF-02</p>
+                        <h2 id="module-title">Gestión de Usuarios</h2>
+                        <p class="module-description" id="module-description"></p>
+                    </div>
+                    <div class="module-actions">
+                        <button class="secondary-btn" type="button">Nuevo</button>
+                        <button class="ghost-btn" type="button">Buscar</button>
+                        <button class="primary-btn" type="button">Guardar</button>
+                    </div>
+                </div>
+
+                <div class="module-layout">
+                    <div class="form-card">
+                        <form id="module-form">
+                            <div class="field-grid" id="field-grid"></div>
+                            <div class="form-actions">
+                                <button type="button" class="secondary-btn">Cancelar</button>
+                                <button type="submit" class="primary-btn">Guardar cambios</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3>Registros recientes</h3>
+                            <span class="badge">CRUD</span>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr id="table-head"></tr>
+                                </thead>
+                                <tbody id="table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('sla-admin-user') || '{}');
+        const userName = document.getElementById('user-name');
+        const userRole = document.getElementById('user-role');
+        const avatar = document.getElementById('avatar');
+        const reportClient = document.getElementById('report-client');
+        const reportStart = document.getElementById('report-start');
+        const reportEnd = document.getElementById('report-end');
+
+        if (user.name) {
+            userName.textContent = user.name;
+            userRole.textContent = user.profile || 'Administrador general';
+            avatar.textContent = user.name.split(' ').map(part => part[0]).slice(0, 2).join('').toUpperCase();
+        }
+
+        const reportRows = [
+            { client: 'Banco Norte', from: '2026-08-01', to: '2026-08-31', sla: 96, tickets: 48, alerts: 3, mttr: 4.2, fines: 14500 },
+            { client: 'Innova Logística', from: '2026-08-01', to: '2026-08-31', sla: 89, tickets: 34, alerts: 5, mttr: 5.3, fines: 9200 },
+            { client: 'Retail Max', from: '2026-08-01', to: '2026-08-31', sla: 82, tickets: 27, alerts: 8, mttr: 6.1, fines: 6800 },
+            { client: 'Codeline', from: '2026-08-01', to: '2026-08-31', sla: 91, tickets: 31, alerts: 4, mttr: 4.7, fines: 11200 }
+        ];
+
+        function populateClientOptions() {
+            const clients = ['all', ...new Set(reportRows.map(item => item.client))];
+            reportClient.innerHTML = clients.map(client => 
+                `<option value="${client}">${client === 'all' ? 'Todos' : client}</option>`
+            ).join('');
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP',
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        function matchesDateRange(item) {
+            const start = reportStart.value || '2026-08-01';
+            const end = reportEnd.value || '2026-08-31';
+            return item.from >= start && item.to <= end;
+        }
+
+        function renderReports() {
+            const selectedClient = reportClient.value;
+            let filtered = reportRows.filter(item => matchesDateRange(item) && (selectedClient === 'all' || item.client === selectedClient));
+
+            if (!filtered.length) {
+                filtered = [{ client: selectedClient === 'all' ? 'Sin datos' : selectedClient, from: reportStart.value, to: reportEnd.value, sla: 0, tickets: 0, alerts: 0, mttr: 0, fines: 0 }];
+            }
+
+            const avgSla = filtered.reduce((sum, item) => sum + item.sla, 0) / filtered.length;
+            const totalTickets = filtered.reduce((sum, item) => sum + item.tickets, 0);
+            const totalAlerts = filtered.reduce((sum, item) => sum + item.alerts, 0);
+            const avgMttr = filtered.reduce((sum, item) => sum + item.mttr, 0) / filtered.length;
+            const totalFines = filtered.reduce((sum, item) => sum + item.fines, 0);
+
+            document.getElementById('sla-rate').textContent = `${avgSla.toFixed(1)}%`;
+            document.getElementById('sla-tickets').textContent = totalTickets;
+            document.getElementById('sla-alerts').textContent = totalAlerts;
+            document.getElementById('repair-mttr').textContent = `${avgMttr.toFixed(1)}h`;
+            document.getElementById('repair-fines').textContent = formatCurrency(totalFines);
+            document.getElementById('repair-avg').textContent = `${(100 - avgMttr * 2.5).toFixed(0)}%`;
+
+            document.getElementById('sla-table').innerHTML = filtered.map(item => `
+                <tr>
+                    <td>${item.client}</td>
+                    <td>${item.sla}%</td>
+                    <td>${item.tickets}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('repair-table').innerHTML = filtered.map(item => `
+                <tr>
+                    <td>${item.client}</td>
+                    <td>${item.mttr.toFixed(1)}h</td>
+                    <td>${formatCurrency(item.fines)}</td>
+                </tr>
+            `).join('');
+            window.getSlaReportData = () => ({
+                title: 'reporte-sla',
+                rows: [
+                    ['Cliente', 'SLA', 'Tickets', 'Alertas', 'MTTR', 'Multas evitadas'],
+                    ...filtered.map(item => [item.client, `${item.sla}%`, item.tickets, item.alerts, `${item.mttr.toFixed(1)}h`, formatCurrency(item.fines)])
+                ]
+            });
+        }
+
+        populateClientOptions();
+        reportStart.addEventListener('change', renderReports);
+        reportEnd.addEventListener('change', renderReports);
+        reportClient.addEventListener('change', renderReports);
+        renderReports();
+
+        const modules = [
+            {
+                key: 'usuarios',
+                title: 'Gestión de Usuarios',
+                description: 'Administración de cuentas, permisos y estado de acceso.',
+                fields: [
+                    { label: 'Nombre completo', type: 'text', value: 'Ana Torres' },
+                    { label: 'Correo', type: 'email', value: 'ana.torres@empresa.cl' },
+                    { label: 'Perfil', type: 'select', options: ['Administrador', 'Ejecutivo', 'Cliente', 'Operador'], value: 'Ejecutivo' },
+                    { label: 'Estado', type: 'select', options: ['Activo', 'Inactivo', 'Pendiente'], value: 'Activo' }
+                ],
+                columns: ['Nombre', 'Correo', 'Perfil', 'Estado'],
+                rows: [
+                    ['Ana Torres', 'ana.torres@empresa.cl', 'Ejecutivo', 'Activo'],
+                    ['Mateo Ruiz', 'mateo.ruiz@empresa.cl', 'Operador', 'Activo'],
+                    ['Lucía Silva', 'lucia.silva@empresa.cl', 'Cliente', 'Pendiente']
+                ]
+            },
+            {
+                key: 'roles',
+                title: 'Gestión de Roles/Perfiles',
+                description: 'Definición de permisos por rol y perfil del sistema.',
+                fields: [
+                    { label: 'Nombre del rol', type: 'text', value: 'Supervisor' },
+                    { label: 'Nivel', type: 'select', options: ['Nivel 1', 'Nivel 2', 'Nivel 3'], value: 'Nivel 2' },
+                    { label: 'Permisos', type: 'text', value: 'Tickets, reportes, clientes' },
+                    { label: 'Estado', type: 'select', options: ['Activo', 'Inactivo'], value: 'Activo' }
+                ],
+                columns: ['Rol', 'Nivel', 'Permisos', 'Estado'],
+                rows: [
+                    ['Supervisor', 'Nivel 2', 'Tickets, reportes, clientes', 'Activo'],
+                    ['Analista', 'Nivel 1', 'Tickets y reportes', 'Activo'],
+                    ['Gerente', 'Nivel 3', 'Todo el sistema', 'Activo']
+                ]
+            },
+            {
+                key: 'clientes',
+                title: 'Gestión de Clientes Corporativos',
+                description: 'Registro y seguimiento de clientes corporativos.',
+                fields: [
+                    { label: 'Empresa', type: 'text', value: 'Banco Norte' },
+                    { label: 'RUT', type: 'text', value: '76.123.456-7' },
+                    { label: 'Contacto', type: 'text', value: 'Javier Paredes' },
+                    { label: 'Estado', type: 'select', options: ['Activo', 'Inactivo'], value: 'Activo' }
+                ],
+                columns: ['Empresa', 'RUT', 'Contacto', 'Estado'],
+                rows: [
+                    ['Banco Norte', '76.123.456-7', 'Javier Paredes', 'Activo'],
+                    ['Innova Logística', '77.456.789-1', 'María Vega', 'Activo'],
+                    ['Retail Max', '78.741.852-9', 'Diego Mora', 'Inactivo']
+                ]
+            },
+            {
+                key: 'contratos',
+                title: 'Gestión de Contratos',
+                description: 'Control de vigencia, alcance y condiciones contractuales.',
+                fields: [
+                    { label: 'Código', type: 'text', value: 'CT-2041' },
+                    { label: 'Cliente', type: 'text', value: 'Banco Norte' },
+                    { label: 'Vigencia', type: 'text', value: '2026-01-01 / 2026-12-31' },
+                    { label: 'Estado', type: 'select', options: ['Vigente', 'Por vencer', 'Suspendido'], value: 'Vigente' }
+                ],
+                columns: ['Código', 'Cliente', 'Vigencia', 'Estado'],
+                rows: [
+                    ['CT-2041', 'Banco Norte', '2026-01-01 / 2026-12-31', 'Vigente'],
+                    ['CT-2088', 'Innova Logística', '2025-06-06 / 2026-06-05', 'Por vencer'],
+                    ['CT-2114', 'Retail Max', '2025-09-12 / 2026-09-11', 'Vigente']
+                ]
+            },
+            {
+                key: 'sla',
+                title: 'Gestión de Reglas y Parámetros SLA',
+                description: 'Definición de tiempos máximos, penalidades y alertas.',
+                fields: [
+                    { label: 'Regla', type: 'text', value: 'Tiempo de respuesta' },
+                    { label: 'Máximo', type: 'text', value: '12 horas' },
+                    { label: 'Multa', type: 'text', value: '5%' },
+                    { label: 'Estado', type: 'select', options: ['Activo', 'Inactivo'], value: 'Activo' }
+                ],
+                columns: ['Regla', 'Máximo', 'Multa', 'Estado'],
+                rows: [
+                    ['Tiempo de respuesta', '12 horas', '5%', 'Activo'],
+                    ['Resolución', '24 horas', '8%', 'Activo'],
+                    ['Escalamiento', '48 horas', '12%', 'Inactivo']
+                ]
+            },
+            {
+                key: 'servicios',
+                title: 'Gestión de Tipos de Servicio',
+                description: 'Clasificación y parametrización de servicios entregados.',
+                fields: [
+                    { label: 'Tipo de servicio', type: 'text', value: 'Soporte Remoto' },
+                    { label: 'Categoría', type: 'text', value: 'Infraestructura' },
+                    { label: 'Tiempo estimado', type: 'text', value: '8 horas' },
+                    { label: 'Estado', type: 'select', options: ['Activo', 'Inactivo'], value: 'Activo' }
+                ],
+                columns: ['Tipo de servicio', 'Categoría', 'Tiempo estimado', 'Estado'],
+                rows: [
+                    ['Soporte Remoto', 'Infraestructura', '8 horas', 'Activo'],
+                    ['Soporte Presencial', 'Campo', '24 horas', 'Activo'],
+                    ['Consultoría', 'Especialista', '72 horas', 'Inactivo']
+                ]
+            },
+            {
+                key: 'hardware',
+                title: 'Gestión de Categorías de Hardware/Equipos',
+                description: 'Clasificación y control de inventario tecnológico.',
+                fields: [
+                    { label: 'Categoría', type: 'text', value: 'Servidor' },
+                    { label: 'Marca', type: 'text', value: 'Dell' },
+                    { label: 'Modelo', type: 'text', value: 'R740' },
+                    { label: 'Estado', type: 'select', options: ['Activo', 'Mantenimiento', 'Baja'], value: 'Activo' }
+                ],
+                columns: ['Categoría', 'Marca', 'Modelo', 'Estado'],
+                rows: [
+                    ['Servidor', 'Dell', 'R740', 'Activo'],
+                    ['Switch', 'Cisco', 'C9300', 'Mantenimiento'],
+                    ['Laptop', 'HP', 'EliteBook', 'Activo']
+                ]
+            },
+            {
+                key: 'sucursales',
+                title: 'Gestión de Sucursales',
+                description: 'Administración de sedes, ubicaciones y contacto.',
+                fields: [
+                    { label: 'Sucursal', type: 'text', value: 'Santiago Centro' },
+                    { label: 'Ciudad', type: 'text', value: 'Santiago' },
+                    { label: 'Encargado', type: 'text', value: 'Patricia Jiménez' },
+                    { label: 'Estado', type: 'select', options: ['Operativa', 'Cerrada'], value: 'Operativa' }
+                ],
+                columns: ['Sucursal', 'Ciudad', 'Encargado', 'Estado'],
+                rows: [
+                    ['Santiago Centro', 'Santiago', 'Patricia Jiménez', 'Operativa'],
+                    ['Valparaíso', 'Valparaíso', 'Lorenzo Cárdenas', 'Operativa'],
+                    ['Concepción', 'Concepción', 'Bruno Díaz', 'Cerrada']
+                ]
+            },
+            {
+                key: 'tecnicos',
+                title: 'Gestión de Técnicos Asignables',
+                description: 'Disponibilidad y asignación de personal técnico.',
+                fields: [
+                    { label: 'Nombre', type: 'text', value: 'Daniel Soto' },
+                    { label: 'Especialidad', type: 'text', value: 'Redes' },
+                    { label: 'Turno', type: 'select', options: ['Mañana', 'Tarde', 'Noche'], value: 'Mañana' },
+                    { label: 'Estado', type: 'select', options: ['Disponible', 'Ocupado', 'Licencia'], value: 'Disponible' }
+                ],
+                columns: ['Nombre', 'Especialidad', 'Turno', 'Estado'],
+                rows: [
+                    ['Daniel Soto', 'Redes', 'Mañana', 'Disponible'],
+                    ['Paula Ríos', 'Infraestructura', 'Tarde', 'Ocupado'],
+                    ['Hugo Ortega', 'Soporte', 'Noche', 'Disponible']
+                ]
+            },
+            {
+                key: 'feriados',
+                title: 'Gestión de Calendario de Feriados y Días Inhábiles',
+                description: 'Configuración de días no laborables del calendario.',
+                fields: [
+                    { label: 'Fecha', type: 'date', value: '2026-09-18' },
+                    { label: 'Evento', type: 'text', value: 'Fiestas Patrias' },
+                    { label: 'Tipo', type: 'select', options: ['Feriado', 'Día inhábil', 'Suspendido'], value: 'Feriado' },
+                    { label: 'Región', type: 'text', value: 'Nacional' }
+                ],
+                columns: ['Fecha', 'Evento', 'Tipo', 'Región'],
+                rows: [
+                    ['2026-09-18', 'Fiestas Patrias', 'Feriado', 'Nacional'],
+                    ['2026-11-02', 'Día de los Difuntos', 'Feriado', 'Nacional'],
+                    ['2026-12-24', 'Franja de cierre', 'Día inhábil', 'Nacional']
+                ]
+            }
+        ];
+
+        const sideNav = document.getElementById('side-nav');
+        const moduleTitle = document.getElementById('module-title');
+        const moduleDescription = document.getElementById('module-description');
+        const fieldGrid = document.getElementById('field-grid');
+        const tableHead = document.getElementById('table-head');
+        const tableBody = document.getElementById('table-body');
+
+        function getRiskCategory(percentage) {
+            if (percentage >= 85) return { label: 'Crítico', className: 'critical' };
+            if (percentage >= 60) return { label: 'Medio', className: 'medium' };
+            return { label: 'Bajo', className: 'low' };
+        }
+
+        document.querySelectorAll('[data-consumed]').forEach(item => {
+            const percentage = Number(item.dataset.consumed || 0);
+            const risk = getRiskCategory(percentage);
+            item.textContent = `${risk.label} · ${percentage}%`;
+            item.className = `risk-badge ${risk.className}`;
+        });
+
+        function renderSidebar() {
+            sideNav.innerHTML = `<button class="nav-item home-nav active" data-key="home" type="button"><span>⌂</span>Inicio</button>` + modules.map((module, index) => `
+                <button class="nav-item" data-key="${module.key}" type="button">
+                    <span>${index + 1}</span>
+                    ${module.title}
+                </button>
+            `).join('');
+
+            document.querySelectorAll('.nav-item').forEach(button => {
+                button.addEventListener('click', () => {
+                if (button.dataset.key === 'home') {
+                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                    button.classList.add('active');
+                    renderModule(null, false);
+                    return;
+                }
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                    button.classList.add('active');
+                    const selected = modules.find(m => m.key === button.dataset.key);
+                    renderModule(selected, true);
+                });
+            });
+        }
+
+        function renderModule(module, focusModule) {
+        document.querySelector('.admin-shell').classList.toggle('module-view-active', Boolean(focusModule));
+        if (!module) return;
+        moduleTitle.textContent = module.title;
+            moduleDescription.textContent = module.description;
+            document.querySelector('.module-panel').dataset.module = module.key;
+            fieldGrid.innerHTML = module.fields.map(field => `
+                <label class="field">
+                    <span>${field.label}</span>
+                    ${field.type === 'select'
+                        ? `<select>
+                            ${field.options.map(option => `<option ${option === field.value ? 'selected' : ''}>${option}</option>`).join('')}
+                          </select>`
+                        : field.type === 'date'
+                            ? `<input type="date" value="${field.value}">`
+                            : `<input type="${field.type}" value="${field.value}">`}
+                </label>
+            `).join('');
+
+            tableHead.innerHTML = module.columns.map(column => `<th>${column}</th>`).join('');
+            tableBody.innerHTML = module.rows.map(row => `
+                <tr>
+                    ${row.map(cell => `<td>${cell}</td>`).join('')}
+                </tr>
+            `).join('');
+        }
+
+        renderSidebar();
+    </script>
+    <script src="../js/reportes-exportacion.js"></script>
+    <script src="../js/preferencias-globales.js"></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Acceso seguro para clientes de SLA Control">
+    <title>Acceso cliente | SLA Control</title>
+    <link rel="stylesheet" href="../css/login-cliente.css">
+    <link rel="stylesheet" href="../css/preferencias-globales.css">
+</head>
+<body class="auth-page client-login">
+    <main class="auth-layout">
+        <section class="auth-brand-panel">
+            <a class="brand auth-brand" href="../index.html"><span class="brand-mark">SC</span><span>SLA Control</span></a>
+            <div class="auth-message">
+                <p class="eyebrow">Portal de clientes</p>
+                <h1>Siempre al tanto de tus solicitudes.</h1>
+                <p>Consulta el estado de tus tickets, revisa los tiempos comprometidos y mantente informado de cada avance.</p>
+            </div>
+            <div class="auth-system-status"><span class="status-dot"></span>Portal disponible</div>
+        </section>
+        <section class="auth-form-panel" aria-labelledby="login-title">
+            <div class="auth-form-wrap">
+                <p class="eyebrow">Portal cliente</p>
+                <h2 id="login-title">Iniciar sesion</h2>
+                <p class="auth-subtitle">Ingresa para consultar tus tickets y acuerdos de servicio.</p>
+                <form class="login-form" id="clientForm" novalidate>
+                    <label for="email">Correo electronico</label>
+                    <input id="email" name="email" type="email" autocomplete="username" placeholder="usuario@empresa.cl" required>
+                    <label for="password">Contraseña</label>
+                    <div class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Ingresa tu contraseña" required minlength="8"><button class="password-toggle" type="button" aria-label="Mostrar contraseña" onclick="togglePassword()">Mostrar</button></div>
+                    <div class="form-options"><label class="remember-option"><input type="checkbox" name="remember"> Mantener la sesion activa</label><span class="form-links"><a href="#recuperar">Olvide mi contraseña</a><a href="registro_cliente.html">Crear una cuenta</a></span></div>
+                    <div class="captcha-group"><label for="captcha-input">Verificacion de seguridad</label><div class="captcha-row"><span class="captcha-code" id="captcha-code"></span><button class="captcha-refresh" type="button" onclick="generateCaptcha()" aria-label="Generar nuevo captcha">↻</button><input id="captcha-input" name="captcha" type="text" placeholder="Escribe el codigo" required autocomplete="off"></div><small id="captcha-message">Completa el codigo para continuar.</small></div>
+                    <div class="auth-error" id="auth-error" role="alert" style="display:none; margin-top:12px; color:#ffb4b4; background:rgba(151,25,25,0.18); border:1px solid rgba(220,108,108,0.45); border-radius:8px; padding:10px 12px;"></div>
+                    <button class="primary-button login-button" type="submit">Iniciar sesión</button>
+                </form>
+                <p class="secure-note"><span>+</span> Conexion protegida. Tu sesion se cerrara automaticamente por inactividad.</p>
+                <p class="auth-switch">Acceso ejecutivo: <a href="login_ejecutivo.html">Ingresar aqui</a></p>
+                <p class="auth-switch">Acceso administrador: <a href="login_administrador.html">Ingresar aqui</a></p>
+                <p class="back-link"><a href="../index.html">&lt;- Volver al inicio</a></p>
+            </div>
+        </section>
+    </main>
+    <script>
+        const clientAccounts = {
+            'cliente@empresa.cl': {
+                password: 'Cliente123',
+                name: 'Carlos Medina',
+                profile: 'Cliente corporativo'
+            }
+        };
+
+        applySavedPreferences();
+
+        function applySavedPreferences() {
+            if (localStorage.getItem('sla-theme') === 'dark') document.body.classList.add('theme-dark');
+            const typography = JSON.parse(localStorage.getItem('sla-typography') || 'null');
+            if (!typography) return;
+            const heading = typography.heading;
+            const body = typography.body;
+            document.documentElement.style.setProperty('--auth-heading-scale', heading === 'large' ? '1.12' : heading === 'extra-large' ? '1.25' : '1');
+            document.documentElement.style.setProperty('--auth-body-scale', body === 'large' ? '1.1' : body === 'extra-large' ? '1.2' : '1');
+        }
+
+        let captchaValue = '';
+        generateCaptcha();
+
+        function generateCaptcha() {
+            captchaValue = Math.random().toString(36).slice(2, 8).toUpperCase();
+            document.getElementById('captcha-code').textContent = captchaValue;
+            document.getElementById('captcha-input').value = '';
+        }
+
+        function validateCaptcha() {
+            const message = document.getElementById('captcha-message');
+            if (document.getElementById('captcha-input').value.trim().toUpperCase() !== captchaValue) { message.textContent = 'El codigo no coincide.'; generateCaptcha(); return false; }
+            return true;
+        }
+
+        function togglePassword() {
+            const password = document.getElementById('password');
+            const toggle = document.querySelector('.password-toggle');
+            const isHidden = password.type === 'password';
+            password.type = isHidden ? 'text' : 'password';
+            toggle.textContent = isHidden ? 'Ocultar' : 'Mostrar';
+            toggle.setAttribute('aria-label', isHidden ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        }
+
+        document.getElementById('clientForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const errorBox = document.getElementById('auth-error');
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value.trim();
+
+            if (!validateCaptcha()) {
+                errorBox.textContent = 'Revisa el codigo de seguridad.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            const account = clientAccounts[email];
+            if (!account || account.password !== password) {
+                errorBox.textContent = 'Credenciales incorrectas para este perfil de cliente.';
+                errorBox.style.display = 'block';
+                generateCaptcha();
+                return;
+            }
+
+            localStorage.setItem('sla-client-user', JSON.stringify({
+                email,
+                name: account.name,
+                profile: account.profile
+            }));
+
+            window.location.href = 'cliente_dashboard.html';
+        });
+    </script>
+    <script src="../js/preferencias-globales.js"></script>
+</body>
+</html>

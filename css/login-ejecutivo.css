@@ -1,0 +1,9 @@
+.auth-error {
+            margin-top: 12px;
+            color: #ffb4b4;
+            background: rgba(151, 25, 25, 0.18);
+            border: 1px solid rgba(220, 108, 108, 0.45);
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: none;
+        }

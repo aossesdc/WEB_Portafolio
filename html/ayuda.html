@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de ayuda | SLA Control</title>
+    <link rel="stylesheet" href="../css/welcome.css">
+    <link rel="stylesheet" href="../css/preferencias-globales.css">
+    <style>
+        .help-page-title { color: #101820; font-family: 'Space Grotesk', sans-serif; font-size: 14px; margin: 0; }
+        .theme-dark .help-page-title { color: #ffffff; }
+    </style>
+</head>
+<body class="welcome-page theme-dark">
+    <header class="welcome-header">
+        <a class="brand" href="../index.html"><span class="brand-mark">SLA</span><span>SLA Control</span></a>
+        <div class="welcome-header-actions">
+            <div class="welcome-display-actions">
+                <div class="font-menu-wrap">
+                    <button class="font-menu-toggle" type="button" aria-label="Personalizar fuente" title="Personalizar fuente" aria-expanded="false" onclick="toggleFontMenu()"><span aria-hidden="true">Aa</span></button>
+                    <div class="font-menu" role="dialog" aria-label="Personalizar tipografia">
+                        <strong>Personalizar texto</strong>
+                        <label for="heading-size">Tamano de titulos</label>
+                        <select id="heading-size" onchange="updateTypography()">
+                            <option value="normal" selected>Normal</option>
+                            <option value="large">Grande</option>
+                            <option value="extra-large">Muy grande</option>
+                        </select>
+                        <label for="body-size">Tamano del texto</label>
+                        <select id="body-size" onchange="updateTypography()">
+                            <option value="normal" selected>Normal</option>
+                            <option value="large">Grande</option>
+                            <option value="extra-large">Muy grande</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="theme-toggle" type="button" aria-label="Activar modo oscuro" title="Cambiar tema" onclick="toggleTheme()"><span class="theme-icon" aria-hidden="true">&#9790;</span></button>
+            </div>
+            <button class="mobile-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" title="Abrir menu" onclick="toggleMobileMenu()"><span></span><span></span><span></span></button>
+            <div class="auth-links">
+                <a class="header-login" id="help-home-link" href="../index.html">Volver al inicio</a>
+                <a class="header-register" id="help-session-link" href="login_cliente.html">Iniciar sesion</a>
+            </div>
+        </div>
+    </header>
+    <main class="welcome-main">
+        <section class="help-page-heading" aria-labelledby="help-page-title">
+            <p class="eyebrow">SLA Control / Ayuda</p>
+            <h1 id="help-page-title" class="help-page-title">Estamos aqui para ayudarte.</h1>
+        </section>
+        <section class="help-section" aria-labelledby="help-title">
+            <div class="help-intro">
+                <p class="eyebrow">Centro de ayuda</p>
+                <h2 id="help-title">Soluciones para avanzar sin detenerte.</h2>
+                <p>Encuentra una respuesta rápida o entra al módulo correcto para resolver tu solicitud.</p>
+            </div>
+            <div class="help-content">
+                <div class="help-quick-links" aria-label="Accesos rápidos de ayuda">
+                    <a href="login_cliente.html"><span class="help-link-icon">?</span><span><strong>Consultar un ticket</strong><small>Revisa avances, responsables y tiempos.</small></span><span class="help-link-arrow" aria-hidden="true">-></span></a>
+                    <a href="login_cliente.html"><span class="help-link-icon">!</span><span><strong>Reportar un problema</strong><small>Informa fallos de la página o de visualización del interfaz del cliente.</small></span><span class="help-link-arrow" aria-hidden="true">-></span></a>
+                </div>
+                <div class="help-faq" aria-label="Preguntas frecuentes">
+                    <details open><summary>¿Cómo creo una solicitud?</summary><p>Ingresa como cliente y selecciona la opción para crear un ticket. Describe el problema y agrega la prioridad.</p></details>
+                    <details><summary>¿Dónde reviso el estado de mi ticket?</summary><p>En tu panel de cliente encontrarás el listado de solicitudes con su estado, responsable y tiempo restante.</p></details>
+                    <details><summary>¿Qué hago si mi solicitud está por vencer?</summary><p>Revisa el nivel de riesgo del ticket y agrega información relevante para que el equipo pueda continuar la atención.</p></details>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="welcome-footer"><span>SLA Control</span><span>Gestion inteligente de tickets y acuerdos de servicio</span><span>Sesion protegida</span></footer>
+    <script>
+        const clientSession = JSON.parse(localStorage.getItem('sla-client-user') || 'null');
+        const executiveSession = JSON.parse(localStorage.getItem('sla-executive-user') || 'null');
+        const adminSession = JSON.parse(localStorage.getItem('sla-admin-user') || 'null');
+        const activeSession = adminSession ? null : clientSession || executiveSession;
+        const homeLink = document.getElementById('help-home-link');
+        const sessionLink = document.getElementById('help-session-link');
+
+        if (activeSession) {
+            const dashboard = clientSession ? 'cliente_dashboard.html' : activeSession.page || (activeSession.profile === 'Ejecutivo de soluciones y soporte' ? 'ejecutivo_soporte.html' : 'ejecutivo_trabajo.html');
+            homeLink.href = dashboard;
+            homeLink.textContent = 'Volver a mi panel';
+            sessionLink.hidden = true;
+        }
+
+        const savedTheme = localStorage.getItem('sla-theme');
+        const isDarkByDefault = savedTheme !== 'light';
+        if (!isDarkByDefault) document.body.classList.remove('theme-dark');
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('theme-dark');
+            document.body.classList.toggle('global-theme-dark', isDark);
+            document.body.classList.toggle('global-theme-light', !isDark);
+            localStorage.setItem('sla-theme', isDark ? 'dark' : 'light');
+            const button = document.querySelector('.theme-toggle');
+            button.setAttribute('aria-label', isDark ? 'Activar modo claro' : 'Activar modo oscuro');
+            button.querySelector('.theme-icon').textContent = isDark ? '\u2600' : '\u263E';
+            button.title = isDark ? 'Activar modo claro' : 'Activar modo oscuro';
+        }
+
+        document.querySelector('.theme-icon').textContent = isDarkByDefault ? '\u2600' : '\u263E';
+        document.querySelector('.theme-toggle').setAttribute('aria-label', isDarkByDefault ? 'Activar modo claro' : 'Activar modo oscuro');
+        document.querySelector('.theme-toggle').title = isDarkByDefault ? 'Activar modo claro' : 'Activar modo oscuro';
+        document.body.classList.add(isDarkByDefault ? 'global-theme-dark' : 'global-theme-light');
+
+        const savedTypography = JSON.parse(localStorage.getItem('sla-typography') || '{"heading":"normal","body":"normal"}');
+        if (savedTypography.heading === 'small') savedTypography.heading = 'normal';
+        if (savedTypography.body === 'small') savedTypography.body = 'normal';
+        document.getElementById('heading-size').value = savedTypography.heading;
+        document.getElementById('body-size').value = savedTypography.body;
+        updateTypography();
+
+        function toggleFontMenu() {
+            const menu = document.querySelector('.font-menu');
+            const button = document.querySelector('.font-menu-toggle');
+            const isOpen = menu.classList.toggle('open');
+            menu.style.display = isOpen ? 'block' : 'none';
+            button.setAttribute('aria-expanded', isOpen);
+        }
+
+        function toggleMobileMenu() {
+            const actions = document.querySelector('.welcome-header-actions');
+            const button = document.querySelector('.mobile-menu-toggle');
+            const isOpen = actions.classList.toggle('mobile-open');
+            button.setAttribute('aria-expanded', isOpen);
+            button.setAttribute('aria-label', isOpen ? 'Cerrar menu' : 'Abrir menu');
+            button.title = isOpen ? 'Cerrar menu' : 'Abrir menu';
+        }
+
+        function updateTypography() {
+            const heading = document.getElementById('heading-size').value;
+            const body = document.getElementById('body-size').value;
+            document.documentElement.style.setProperty('--welcome-heading-scale', heading === 'large' ? '1.12' : heading === 'extra-large' ? '1.25' : '1');
+            document.documentElement.style.setProperty('--welcome-body-scale', body === 'large' ? '1.1' : body === 'extra-large' ? '1.2' : '1');
+            localStorage.setItem('sla-typography', JSON.stringify({ heading, body }));
+        }
+    </script>
+    <script src="../js/preferencias-globales.js"></script>
+</body>
+</html>

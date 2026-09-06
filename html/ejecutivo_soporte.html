@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Técnico de soporte | SLA Control</title>
+    <link rel="stylesheet" href="../css/ejecutivo-soporte.css">
+    <link rel="stylesheet" href="../css/preferencias-globales.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header class="topbar">
+            <a class="brand brand-with-mark" href="../index.html"><span class="brand-mark">SLA</span><span>SLA Control</span></a>
+            <div class="topbar-right">
+                <span class="user-badge" id="user-badge">Técnico de soporte</span>
+                <a class="logout-btn" href="../index.html" onclick="localStorage.removeItem('sla-executive-user')">Cerrar sesión</a>
+            </div>
+        </header>
+
+        <section class="hero">
+            <div>
+                <p class="eyebrow">Perfil técnico</p>
+                <h1>Mi operación de soporte</h1>
+                <p>Resuelve tus tickets asignados, controla el SLA en vivo y registra cada acción realizada en terreno.</p>
+            </div>
+            <span class="status-pill">3 tickets asignados</span>
+        </section>
+
+        <section class="stats" aria-label="Estadísticas del soporte">
+            <article class="stat">
+                <span class="stat-label">Tickets asignados</span>
+                <p class="stat-value">03</p>
+            </article>
+            <article class="stat">
+                <span class="stat-label">En riesgo</span>
+                <p class="stat-value">01</p>
+            </article>
+            <article class="stat">
+                <span class="stat-label">Resueltos hoy</span>
+                <p class="stat-value">02</p>
+            </article>
+        </section>
+
+        <section class="technician-layout">
+            <div class="panel assigned-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">CU20</p>
+                        <h2>Mi lista de tickets asignados</h2>
+                    </div>
+                    <span class="assignment-badge">Asignación personal</span>
+                </div>
+                <div class="assigned-tickets">
+                    <article class="assigned-ticket selected">
+                        <div class="ticket-main">
+                            <strong>SO-3341 | Grupo Norte</strong>
+                            <small>Falla de sincronización de datos</small>
+                        </div>
+                        <span class="tag urgent">Rojo</span>
+                        <div class="sla-clock critical" data-seconds="3678">01:01:18</div>
+                    </article>
+                    <article class="assigned-ticket">
+                        <div class="ticket-main">
+                            <strong>SO-3320 | Sistemas RCM</strong>
+                            <small>Revisión de enlace de comunicaciones</small>
+                        </div>
+                        <span class="tag warn">Amarillo</span>
+                        <div class="sla-clock warning" data-seconds="14280">03:58:00</div>
+                    </article>
+                    <article class="assigned-ticket">
+                        <div class="ticket-main">
+                            <strong>SO-3302 | Codeline</strong>
+                            <small>Actualización de equipo de usuario</small>
+                        </div>
+                        <span class="tag ok">Verde</span>
+                        <div class="sla-clock safe" data-seconds="28800">08:00:00</div>
+                    </article>
+                </div>
+            </div>
+
+            <aside class="panel hardware-panel">
+                <p class="eyebrow">Detalle del ticket seleccionado</p>
+                <h2>Equipo y sucursal</h2>
+                <dl class="detail-list">
+                    <div><dt>Equipo</dt><dd>Servidor XYZ-440</dd></div>
+                    <div><dt>Categoría</dt><dd>Infraestructura / Servidor</dd></div>
+                    <div><dt>Sucursal</dt><dd>Av. Providencia 1234, Santiago</dd></div>
+                    <div><dt>Contacto en sitio</dt><dd>María González · +56 9 5555 1234</dd></div>
+                </dl>
+            </aside>
+        </section>
+
+        <section class="technician-layout lower-layout">
+            <div class="panel update-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">CU20</p>
+                        <h2>Actualizar estado y cerrar ticket</h2>
+                    </div>
+                </div>
+                <form id="ticket-update-form">
+                    <label class="field">
+                        <span>Estado del ticket</span>
+                        <select id="ticket-status">
+                            <option>En Proceso</option>
+                            <option>Pausado (Esperando Repuesto/Cliente)</option>
+                            <option>Resuelto</option>
+                            <option>Cerrado</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>Bitácora de acciones / registro de trabajo</span>
+                        <textarea id="work-log" rows="5" placeholder="Describe la solución aplicada o los hallazgos técnicos..."></textarea>
+                    </label>
+                    <div class="form-actions">
+                        <button class="secondary-btn" type="button" id="pause-ticket">Pausar ticket</button>
+                        <button class="primary-btn" type="submit">Guardar actualización</button>
+                    </div>
+                    <p class="form-feedback" id="form-feedback" role="status"></p>
+                </form>
+            </div>
+
+            <aside class="panel log-panel">
+                <p class="eyebrow">Historial</p>
+                <h2>Últimas acciones</h2>
+                <ul class="mini-list">
+                    <li><span>Ticket asignado</span><strong>08:15</strong></li>
+                    <li><span>Diagnóstico iniciado</span><strong>08:32</strong></li>
+                    <li><span>Repuesto solicitado</span><strong>08:48</strong></li>
+                </ul>
+            </aside>
+        </section>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('sla-executive-user') || '{}');
+        const userBadge = document.getElementById('user-badge');
+
+        function getRiskCategory(percentage) {
+            if (percentage >= 85) return { label: 'Crítico', className: 'critical' };
+            if (percentage >= 60) return { label: 'Medio', className: 'medium' };
+            return { label: 'Bajo', className: 'low' };
+        }
+
+        document.querySelectorAll('[data-consumed]').forEach(item => {
+            const percentage = Number(item.dataset.consumed || 0);
+            const risk = getRiskCategory(percentage);
+            item.textContent = `${risk.label} · ${percentage}%`;
+            item.className = `risk-badge ${risk.className}`;
+        });
+
+        if (user.name) {
+            userBadge.textContent = user.name;
+        }
+
+        document.querySelectorAll('.sla-clock').forEach(clock => {
+            let remaining = Number(clock.dataset.seconds);
+            const updateClock = () => {
+                remaining = Math.max(0, remaining - 1);
+                const hours = String(Math.floor(remaining / 3600)).padStart(2, '0');
+                const minutes = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
+                const seconds = String(remaining % 60).padStart(2, '0');
+                clock.textContent = `${hours}:${minutes}:${seconds}`;
+            };
+            updateClock();
+            setInterval(updateClock, 1000);
+        });
+
+        document.getElementById('pause-ticket').addEventListener('click', () => {
+            document.getElementById('ticket-status').value = 'Pausado (Esperando Repuesto/Cliente)';
+        });
+
+        document.getElementById('ticket-update-form').addEventListener('submit', event => {
+            event.preventDefault();
+            document.getElementById('form-feedback').textContent = 'Actualización guardada para SO-3341.';
+        });
+    </script>
+    <script src="../js/preferencias-globales.js"></script>
+</body>
+</html>

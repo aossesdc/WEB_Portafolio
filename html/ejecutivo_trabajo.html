@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejecutivo | SLA Control</title>
+    <link rel="stylesheet" href="../css/ejecutivo-trabajo.css">
+    <link rel="stylesheet" href="../css/preferencias-globales.css">
+</head>
+<body>
+    <div class="dashboard executive-dashboard">
+        <header class="topbar">
+            <a class="brand brand-with-mark" href="../index.html"><span class="brand-mark">SLA</span><span>SLA Control</span></a>
+            <div class="topbar-right">
+                <span class="user-badge" id="user-badge">Ejecutivo</span>
+                <a class="logout-btn" href="../index.html" onclick="localStorage.removeItem('sla-executive-user')">Cerrar sesión</a>
+            </div>
+        </header>
+
+        <section class="hero">
+            <div>
+                <p class="eyebrow">CU18 · RF-05</p>
+                <h1>Dashboard de riesgo SLA</h1>
+                <p>Monitorea todos los tickets activos de la empresa y actúa antes de que generen multas.</p>
+            </div>
+            <span class="status-pill">Monitoreo en vivo</span>
+        </section>
+
+        <section class="stats executive-kpis" aria-label="Resumen de riesgo SLA">
+            <article class="stat"><span class="stat-label">Tickets activos</span><p class="stat-value">18</p></article>
+            <article class="stat kpi-low"><span class="stat-label">Riesgo bajo · Verde</span><p class="stat-value">09</p><small>&lt; 50% consumido</small></article>
+            <article class="stat kpi-medium"><span class="stat-label">Riesgo medio · Amarillo</span><p class="stat-value">06</p><small>50% - 80% consumido</small></article>
+            <article class="stat kpi-critical"><span class="stat-label">Riesgo crítico · Rojo</span><p class="stat-value">03</p><small>&gt; 80% consumido</small></article>
+        </section>
+
+        <section class="panel monitoring-panel">
+            <div class="section-heading">
+                <div><p class="eyebrow">Semáforo de SLA en vivo</p><h2>Monitoreo general</h2></div>
+                <span class="live-indicator">● Actualizado ahora</span>
+            </div>
+            <div class="table-wrap">
+                <table class="monitoring-table">
+                    <thead><tr><th>Ticket</th><th>Cliente</th><th>Técnico asignado</th><th>SLA consumido</th><th>Riesgo</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>INC-2048</strong><small>Conectividad</small></td><td>Banco del Sur</td><td>Daniel Soto</td><td><div class="progress"><span style="width:92%"></span></div><b>92%</b></td><td><span class="risk-badge critical">Crítico</span></td></tr>
+                        <tr><td><strong>REQ-1103</strong><small>Mejora plataforma</small></td><td>Retail Max</td><td>Paula Ríos</td><td><div class="progress"><span style="width:63%"></span></div><b>63%</b></td><td><span class="risk-badge medium">Medio</span></td></tr>
+                        <tr><td><strong>SOL-887</strong><small>Consulta técnica</small></td><td>MRO Logistics</td><td>Hugo Ortega</td><td><div class="progress"><span style="width:44%"></span></div><b>44%</b></td><td><span class="risk-badge low">Bajo</span></td></tr>
+                        <tr><td><strong>INC-2071</strong><small>Falla de servidor</small></td><td>Codeline</td><td>Sin asignar</td><td><div class="progress"><span style="width:84%"></span></div><b>84%</b></td><td><span class="risk-badge critical">Crítico</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="executive-grid">
+            <section class="panel">
+                <div class="section-heading"><div><p class="eyebrow">CU19</p><h2>Ingreso manual de incidencia</h2></div></div>
+                <form id="incident-form" class="incident-form">
+                    <div class="form-grid">
+                        <label class="field"><span>Cliente corporativo *</span><select required><option value="">Seleccionar cliente</option><option>Banco del Sur</option><option>Retail Max</option><option>Codeline</option></select></label>
+                        <label class="field"><span>Contrato *</span><select required><option value="">Seleccionar contrato</option><option>CT-2026-001 · Premium</option><option>CT-2026-014 · Standard</option></select></label>
+                        <label class="field"><span>Sucursal *</span><select required><option value="">Seleccionar sucursal</option><option>Santiago Centro</option><option>Providencia</option></select></label>
+                        <label class="field"><span>Categoría de hardware *</span><select required><option value="">Seleccionar categoría</option><option>Servidor</option><option>Redes</option><option>Estación de trabajo</option></select></label>
+                        <label class="field"><span>Tipo de servicio *</span><select required><option value="">Seleccionar servicio</option><option>Soporte remoto</option><option>Soporte presencial</option></select></label>
+                        <label class="field"><span>Prioridad *</span><select required><option>Alta</option><option>Media</option><option>Baja</option></select></label>
+                    </div>
+                    <label class="field"><span>Descripción del problema *</span><textarea required rows="4" placeholder="Describe la falla reportada..."></textarea></label>
+                    <button class="primary-btn" type="submit">Registrar incidencia</button><p class="form-feedback" id="incident-feedback"></p>
+                </form>
+            </section>
+
+            <section class="panel assignment-panel">
+                <div class="section-heading"><div><p class="eyebrow">Asignación</p><h2>Centro de técnicos</h2></div></div>
+                <p class="panel-intro">Incidencias nuevas pendientes de asignación.</p>
+                <article class="assignment-item"><div><strong>INC-2071</strong><small>Falla de servidor · Codeline</small></div><select aria-label="Asignar técnico"><option>Seleccionar técnico</option><option>Daniel Soto · Disponible</option><option>Hugo Ortega · Disponible</option></select><button class="secondary-btn assign-btn" type="button">Asignar</button></article>
+                <article class="assignment-item"><div><strong>REQ-1108</strong><small>Red sin conexión · Banco del Sur</small></div><select aria-label="Asignar técnico"><option>Seleccionar técnico</option><option>Paula Ríos · Disponible</option><option>Hugo Ortega · Disponible</option></select><button class="secondary-btn assign-btn" type="button">Asignar</button></article>
+            </section>
+        </section>
+
+        <section class="panel reports-panel">
+            <div class="section-heading"><div><p class="eyebrow">CU16 · RF-07 · CU17 · RF-08</p><h2>Reportes operativos</h2></div><div class="report-downloads"><button class="secondary-btn" type="button" data-report-download="pdf">Exportar a PDF</button><button class="primary-btn" type="button" data-report-download="xls">Exportar a XLS</button></div></div>
+            <div class="report-filters"><label class="field"><span>Desde</span><input type="date" value="2026-08-01"></label><label class="field"><span>Hasta</span><input type="date" value="2026-08-31"></label><label class="field"><span>Cliente corporativo</span><select><option>Todos los clientes</option><option>Banco del Sur</option><option>Retail Max</option></select></label></div>
+            <div class="report-cards"><article><h3>Cumplimiento de SLA</h3><strong>89,5%</strong><p>Tickets resueltos a tiempo vs. incumplidos por contrato.</p></article><article><h3>Tiempos medios y multas evitadas</h3><strong>5,1 h</strong><p>$41.700 estimados evitados en penalizaciones.</p></article></div>
+        </section>
+
+        <section class="panel notifications-panel">
+            <div class="section-heading"><div><p class="eyebrow">CU15 · RF-06</p><h2>Historial de alertas</h2></div><span class="notification-count">3 alertas críticas</span></div>
+            <ul class="notification-list"><li><span class="alert-dot critical"></span><div><strong>INC-2048 alcanzó riesgo crítico (92%)</strong><small>Correo enviado al técnico Daniel Soto · hace 8 min</small></div></li><li><span class="alert-dot critical"></span><div><strong>INC-2071 requiere asignación inmediata</strong><small>Alerta enviada al equipo ejecutivo · hace 15 min</small></div></li><li><span class="alert-dot medium"></span><div><strong>REQ-1103 superó el 60% de consumo</strong><small>Notificación enviada a Paula Ríos · hace 32 min</small></div></li></ul>
+        </section>
+    </div>
+    <script>
+        const user = JSON.parse(localStorage.getItem('sla-executive-user') || '{}');
+        if (user.name) document.getElementById('user-badge').textContent = user.name;
+        document.getElementById('incident-form').addEventListener('submit', event => { event.preventDefault(); document.getElementById('incident-feedback').textContent = 'Incidencia registrada y enviada al centro de asignación.'; });
+        document.querySelectorAll('.assign-btn').forEach(button => button.addEventListener('click', () => { button.textContent = 'Asignado'; button.disabled = true; }));
+        window.getSlaReportData = () => ({ title: 'reporte-ejecutivo', rows: [['Ticket', 'Cliente', 'Técnico', 'SLA', 'Riesgo'], ['INC-2048', 'Banco del Sur', 'Daniel Soto', '92%', 'Crítico'], ['REQ-1103', 'Retail Max', 'Paula Ríos', '63%', 'Medio'], ['SOL-887', 'MRO Logistics', 'Hugo Ortega', '44%', 'Bajo'], ['INC-2071', 'Codeline', 'Sin asignar', '84%', 'Crítico']] });
+    </script>
+    <script src="../js/reportes-exportacion.js"></script>
+    <script src="../js/preferencias-globales.js"></script>
+</body>
+</html>

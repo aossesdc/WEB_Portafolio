@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Acceso privado para administradores de SLA Control">
+    <title>Acceso administrador | SLA Control</title>
+    <link rel="stylesheet" href="../css/login-administrador.css">
+    <link rel="stylesheet" href="../css/preferencias-globales.css">
+</head>
+<body class="auth-page executive-login">
+    <main class="auth-layout">
+        <section class="auth-brand-panel">
+            <a class="brand auth-brand" href="../index.html"><span class="brand-mark">SC</span><span>SLA Control</span></a>
+            <div class="auth-message">
+                <p class="eyebrow">Acceso privado</p>
+                <h1>Administracion central del sistema.</h1>
+                <p>Configura usuarios, contratos, reglas SLA, calendarios y reportes desde el espacio de administracion.</p>
+            </div>
+            <div class="auth-system-status"><span class="status-dot"></span>Acceso administrativo protegido</div>
+        </section>
+        <section class="auth-form-panel" aria-labelledby="login-title">
+            <div class="auth-form-wrap">
+                <p class="eyebrow">Administrador</p>
+                <h2 id="login-title">Iniciar sesion</h2>
+                <p class="auth-subtitle">Ingresa tus credenciales administrativas para continuar.</p>
+                <form class="login-form" id="adminForm" novalidate>
+                    <label for="email">Correo electronico</label>
+                    <input id="email" name="email" type="email" autocomplete="username" placeholder="admin@empresa.cl" required>
+                    <label for="password">Contraseña</label>
+                    <div class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Ingresa tu contraseña" required minlength="8"></div>
+                    <div class="captcha-group"><label for="captcha-input">Verificacion de seguridad</label><div class="captcha-row"><span class="captcha-code" id="captcha-code"></span><button class="captcha-refresh" type="button" onclick="generateCaptcha()" aria-label="Generar nuevo captcha">↻</button><input id="captcha-input" name="captcha" type="text" placeholder="Escribe el codigo" required autocomplete="off"></div><small id="captcha-message">Completa el codigo para continuar.</small></div>
+                    <div class="auth-error" id="auth-error" role="alert" style="display:none; margin-top:12px; color:#ffb4b4; background:rgba(151,25,25,0.18); border:1px solid rgba(220,108,108,0.45); border-radius:8px; padding:10px 12px;"></div>
+                    <button class="primary-button login-button" type="submit">Iniciar sesión</button>
+                </form>
+                <p class="secure-note"><span>+</span> Conexion protegida para usuarios autorizados.</p>
+                <p class="back-link"><a href="../index.html">&lt;- Volver al inicio</a></p>
+            </div>
+        </section>
+    </main>
+    <script>
+        const adminAccounts = {
+            'admin@empresa.cl': {
+                password: 'Admin123',
+                name: 'María López',
+                profile: 'Administrador general'
+            }
+        };
+
+        applySavedPreferences();
+
+        function applySavedPreferences() {
+            const savedTheme = localStorage.getItem('sla-theme');
+            const isDarkByDefault = savedTheme !== 'light';
+            if (isDarkByDefault) document.body.classList.add('theme-dark');
+            const typography = JSON.parse(localStorage.getItem('sla-typography') || 'null');
+            if (!typography) return;
+            const heading = typography.heading;
+            const body = typography.body;
+            document.documentElement.style.setProperty('--auth-heading-scale', heading === 'large' ? '1.12' : heading === 'extra-large' ? '1.25' : '1');
+            document.documentElement.style.setProperty('--auth-body-scale', body === 'large' ? '1.1' : body === 'extra-large' ? '1.2' : '1');
+        }
+
+        let captchaValue = '';
+        generateCaptcha();
+
+        function generateCaptcha() {
+            captchaValue = Math.random().toString(36).slice(2, 8).toUpperCase();
+            document.getElementById('captcha-code').textContent = captchaValue;
+            document.getElementById('captcha-input').value = '';
+        }
+
+        function validateCaptcha() {
+            const message = document.getElementById('captcha-message');
+            if (document.getElementById('captcha-input').value.trim().toUpperCase() !== captchaValue) {
+                message.textContent = 'El codigo no coincide.';
+                generateCaptcha();
+                return false;
+            }
+            return true;
+        }
+
+        document.getElementById('adminForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const errorBox = document.getElementById('auth-error');
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value.trim();
+
+            if (!validateCaptcha()) {
+                errorBox.textContent = 'Revisa el codigo de seguridad.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            const account = adminAccounts[email];
+            if (!account || account.password !== password) {
+                errorBox.textContent = 'Credenciales incorrectas para este perfil de administrador.';
+                errorBox.style.display = 'block';
+                generateCaptcha();
+                return;
+            }
+
+            localStorage.setItem('sla-admin-user', JSON.stringify({
+                email,
+                name: account.name,
+                profile: account.profile
+            }));
+
+            window.location.href = 'administrador_dashboard.html';
+        });
+    </script>
+    <script src="../js/preferencias-globales.js"></script>
+</body>
+</html>
