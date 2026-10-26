@@ -23,21 +23,21 @@
                 <h1>Mi operación de soporte</h1>
                 <p>Resuelve tus tickets asignados, controla el SLA en vivo y registra cada acción realizada en terreno.</p>
             </div>
-            <span class="status-pill">3 tickets asignados</span>
+            <span class="status-pill" id="assigned-ticket-count">0 tickets asignados</span>
         </section>
 
         <section class="stats" aria-label="Estadísticas del soporte">
             <article class="stat">
                 <span class="stat-label">Tickets asignados</span>
-                <p class="stat-value">03</p>
+                <p class="stat-value" id="support-active-count">0</p>
             </article>
             <article class="stat">
                 <span class="stat-label">En riesgo</span>
-                <p class="stat-value">01</p>
+                <p class="stat-value" id="support-risk-count">0</p>
             </article>
             <article class="stat">
                 <span class="stat-label">Resueltos hoy</span>
-                <p class="stat-value">02</p>
+                <p class="stat-value" id="support-resolved-count">0</p>
             </article>
         </section>
 
@@ -107,11 +107,7 @@
             <aside class="panel log-panel">
                 <p class="eyebrow">Historial</p>
                 <h2>Últimas acciones</h2>
-                <ul class="mini-list">
-                    <li><span>Ticket asignado</span><strong>08:15</strong></li>
-                    <li><span>Diagnóstico iniciado</span><strong>08:32</strong></li>
-                    <li><span>Repuesto solicitado</span><strong>08:48</strong></li>
-                </ul>
+                <ul class="mini-list" id="support-history"><li>No hay acciones registradas.</li></ul>
             </aside>
         </section>
     </div>
@@ -187,6 +183,12 @@
             try {
                 const result = await SlaApi.request('/api/tickets');
                 renderTicketList(result.data);
+                const openTickets = result.data.filter(ticket => ticket.status === 'activo' || ticket.status === 'pausado');
+                const assigned = openTickets.filter(ticket => ticket.assignedTech === user.name);
+                document.getElementById('assigned-ticket-count').textContent = `${assigned.length} tickets asignados`;
+                document.getElementById('support-active-count').textContent = openTickets.length;
+                document.getElementById('support-risk-count').textContent = openTickets.filter(ticket => ticket.riskClass === 'critical' || ticket.riskClass === 'medium').length;
+                document.getElementById('support-resolved-count').textContent = result.data.filter(ticket => ticket.status === 'resuelto' || ticket.status === 'cerrado').length;
             } catch (error) {
                 assignedTickets.textContent = error.message;
             }

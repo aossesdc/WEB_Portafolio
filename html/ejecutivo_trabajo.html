@@ -51,9 +51,9 @@
                 <div class="section-heading"><div><p class="eyebrow">CU19</p><h2>Ingreso manual de incidencia</h2></div></div>
                 <form id="incident-form" class="incident-form">
                     <div class="form-grid">
-                        <label class="field"><span>Cliente corporativo *</span><select required><option value="">Seleccionar cliente</option><option>Banco del Sur</option><option>Retail Max</option><option>Codeline</option></select></label>
-                        <label class="field"><span>Contrato *</span><select required><option value="">Seleccionar contrato</option><option>CT-2026-001 · Premium</option><option>CT-2026-014 · Standard</option></select></label>
-                        <label class="field"><span>Sucursal *</span><select required><option value="">Seleccionar sucursal</option><option>Santiago Centro</option><option>Providencia</option></select></label>
+                        <label class="field"><span>Cliente corporativo *</span><select required><option value="" selected>Sin clientes registrados</option></select></label>
+                        <label class="field"><span>Contrato *</span><select required><option value="" selected>Sin contratos registrados</option></select></label>
+                        <label class="field"><span>Sucursal *</span><select required><option value="" selected>Sin sucursales registradas</option></select></label>
                         <label class="field"><span>Categoría de hardware *</span><select required><option value="">Seleccionar categoría</option><option>Servidor</option><option>Redes</option><option>Estación de trabajo</option></select></label>
                         <label class="field"><span>Tipo de servicio *</span><select required><option value="">Seleccionar servicio</option><option>Soporte remoto</option><option>Soporte presencial</option></select></label>
                         <label class="field"><span>Prioridad *</span><select required><option>Alta</option><option>Media</option><option>Baja</option></select></label>
@@ -66,20 +66,19 @@
             <section class="panel assignment-panel">
                 <div class="section-heading"><div><p class="eyebrow">Asignación</p><h2>Centro de técnicos</h2></div></div>
                 <p class="panel-intro">Incidencias nuevas pendientes de asignación.</p>
-                <article class="assignment-item"><div><strong>INC-2071</strong><small>Falla de servidor · Codeline</small></div><select aria-label="Asignar técnico"><option>Seleccionar técnico</option><option>Daniel Soto · Disponible</option><option>Hugo Ortega · Disponible</option></select><button class="secondary-btn assign-btn" type="button">Asignar</button></article>
-                <article class="assignment-item"><div><strong>REQ-1108</strong><small>Red sin conexión · Banco del Sur</small></div><select aria-label="Asignar técnico"><option>Seleccionar técnico</option><option>Paula Ríos · Disponible</option><option>Hugo Ortega · Disponible</option></select><button class="secondary-btn assign-btn" type="button">Asignar</button></article>
+                <p id="assignment-empty">No hay incidencias pendientes de asignación.</p>
             </section>
         </section>
 
         <section class="panel reports-panel">
             <div class="section-heading"><div><p class="eyebrow">CU16 · RF-07 · CU17 · RF-08</p><h2>Reportes operativos</h2></div><div class="report-downloads"><button class="secondary-btn" type="button" data-report-download="pdf">Exportar a PDF</button><button class="primary-btn" type="button" data-report-download="xls">Exportar a XLS</button></div></div>
-            <div class="report-filters"><label class="field"><span>Desde</span><input type="date" value="2026-08-01"></label><label class="field"><span>Hasta</span><input type="date" value="2026-08-31"></label><label class="field"><span>Cliente corporativo</span><select><option>Todos los clientes</option><option>Banco del Sur</option><option>Retail Max</option></select></label></div>
-            <div class="report-cards"><article><h3>Cumplimiento de SLA</h3><strong>89,5%</strong><p>Tickets resueltos a tiempo vs. incumplidos por contrato.</p></article><article><h3>Tiempos medios y multas evitadas</h3><strong>5,1 h</strong><p>$41.700 estimados evitados en penalizaciones.</p></article></div>
+            <div class="report-filters"><label class="field"><span>Desde</span><input type="date"></label><label class="field"><span>Hasta</span><input type="date"></label><label class="field"><span>Cliente corporativo</span><select><option>Todos los clientes</option></select></label></div>
+            <div class="report-cards"><article><h3>Cumplimiento de SLA</h3><strong id="executive-compliance">0%</strong><p>Se calculará cuando existan tickets resueltos.</p></article><article><h3>Tiempos medios y multas evitadas</h3><strong id="executive-mttr">0 h</strong><p>Sin registros.</p></article></div>
         </section>
 
         <section class="panel notifications-panel">
-            <div class="section-heading"><div><p class="eyebrow">CU15 · RF-06</p><h2>Historial de alertas</h2></div><span class="notification-count">3 alertas críticas</span></div>
-            <ul class="notification-list"><li><span class="alert-dot critical"></span><div><strong>INC-2048 alcanzó riesgo crítico (92%)</strong><small>Correo enviado al técnico Daniel Soto · hace 8 min</small></div></li><li><span class="alert-dot critical"></span><div><strong>INC-2071 requiere asignación inmediata</strong><small>Alerta enviada al equipo ejecutivo · hace 15 min</small></div></li><li><span class="alert-dot medium"></span><div><strong>REQ-1103 superó el 60% de consumo</strong><small>Notificación enviada a Paula Ríos · hace 32 min</small></div></li></ul>
+            <div class="section-heading"><div><p class="eyebrow">CU15 · RF-06</p><h2>Historial de alertas</h2></div><span class="notification-count" id="executive-notification-count">0 alertas</span></div>
+            <ul class="notification-list" id="executive-notifications"><li>No hay alertas registradas.</li></ul>
         </section>
     </div>
     <script src="../js/sla-api.js"></script>
@@ -87,11 +86,13 @@
         const user = JSON.parse(localStorage.getItem('sla-executive-user') || '{}');
         if (user.name) document.getElementById('user-badge').textContent = user.name;
         const executiveTicketList = document.getElementById('executive-ticket-list');
+        let executiveTickets = [];
 
         async function loadExecutiveTickets() {
             try {
                 const result = await SlaApi.request('/api/tickets');
                 const tickets = result.data;
+                executiveTickets = tickets;
                 executiveTicketList.replaceChildren();
                 const activeTickets = tickets.filter(ticket => ticket.status === 'activo');
                 const riskCounts = { low: 0, medium: 0, critical: 0 };
@@ -142,6 +143,12 @@
                 document.getElementById('executive-low-count').textContent = riskCounts.low || 0;
                 document.getElementById('executive-medium-count').textContent = riskCounts.medium || 0;
                 document.getElementById('executive-critical-count').textContent = riskCounts.critical || 0;
+                const resolvedTickets = tickets.filter(ticket => ticket.status === 'resuelto' || ticket.status === 'cerrado');
+                const compliantTickets = resolvedTickets.filter(ticket => ticket.consumedPercentage < 100);
+                document.getElementById('executive-compliance').textContent = `${resolvedTickets.length ? Math.round(compliantTickets.length / resolvedTickets.length * 100) : 0}%`;
+                document.getElementById('executive-mttr').textContent = resolvedTickets.length ? `${(resolvedTickets.reduce((sum, ticket) => sum + ticket.elapsedHours, 0) / resolvedTickets.length).toFixed(1)} h` : '0 h';
+                document.getElementById('assignment-empty').hidden = activeTickets.some(ticket => !ticket.assignedTech);
+                renderExecutiveNotifications(tickets);
             } catch (error) {
                 executiveTicketList.replaceChildren();
                 const row = document.createElement('tr');
@@ -152,10 +159,42 @@
                 executiveTicketList.appendChild(row);
             }
         }
+
+        function renderExecutiveNotifications(tickets) {
+            const list = document.getElementById('executive-notifications');
+            list.replaceChildren();
+            const riskyTickets = tickets.filter(ticket => ticket.riskClass === 'critical' || ticket.riskClass === 'medium');
+            document.getElementById('executive-notification-count').textContent = `${riskyTickets.length} alertas`;
+            if (!riskyTickets.length) {
+                const emptyItem = document.createElement('li');
+                emptyItem.textContent = 'No hay alertas registradas.';
+                list.appendChild(emptyItem);
+                return;
+            }
+
+            riskyTickets.forEach(ticket => {
+                const item = document.createElement('li');
+                const marker = document.createElement('span');
+                marker.className = `alert-dot ${ticket.riskClass}`;
+                const content = document.createElement('div');
+                const title = document.createElement('strong');
+                title.textContent = `${ticket.id} alcanzó riesgo ${ticket.risk} (${ticket.consumedPercentage}%)`;
+                const description = document.createElement('small');
+                description.textContent = `${ticket.client} · ${ticket.assignedTech || 'Sin asignar'}`;
+                content.append(title, description);
+                item.append(marker, content);
+                list.appendChild(item);
+            });
+        }
+
         loadExecutiveTickets();
-        document.getElementById('incident-form').addEventListener('submit', event => { event.preventDefault(); document.getElementById('incident-feedback').textContent = 'Incidencia registrada y enviada al centro de asignación.'; });
-        document.querySelectorAll('.assign-btn').forEach(button => button.addEventListener('click', () => { button.textContent = 'Asignado'; button.disabled = true; }));
-        window.getSlaReportData = () => ({ title: 'reporte-ejecutivo', rows: [['Ticket', 'Cliente', 'Técnico', 'SLA', 'Riesgo'], ['INC-2048', 'Banco del Sur', 'Daniel Soto', '92%', 'Crítico'], ['REQ-1103', 'Retail Max', 'Paula Ríos', '63%', 'Medio'], ['SOL-887', 'MRO Logistics', 'Hugo Ortega', '44%', 'Bajo'], ['INC-2071', 'Codeline', 'Sin asignar', '84%', 'Crítico']] });
+        window.getSlaReportData = () => ({
+            title: 'reporte-ejecutivo',
+            rows: [
+                ['Ticket', 'Cliente', 'Técnico', 'SLA', 'Riesgo'],
+                ...executiveTickets.map(ticket => [ticket.id, ticket.client, ticket.assignedTech || 'Sin asignar', `${ticket.consumedPercentage}%`, ticket.risk])
+            ]
+        });
     </script>
     <script src="../js/reportes-exportacion.js"></script>
     <script src="../js/preferencias-globales.js"></script>

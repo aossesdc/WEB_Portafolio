@@ -28,10 +28,10 @@
                     <h1>Panel de administración</h1>
                 </div>
                 <div class="user-box">
-                    <div class="avatar" id="avatar">ML</div>
+                    <div class="avatar" id="avatar">--</div>
                     <div>
-                        <strong id="user-name">María López</strong><br>
-                        <small id="user-role">Administrador general</small>
+                        <strong id="user-name">Administrador</strong><br>
+                        <small id="user-role">Cuenta administradora</small>
                     </div>
                     <a class="logout" href="../index.html" onclick="localStorage.removeItem('sla-admin-user'); localStorage.removeItem('sla-session-token')">Cerrar sesión</a>
                 </div>
@@ -39,20 +39,20 @@
 
             <section class="stats-grid dashboard-overview">
                 <article class="stat-card accent">
-                    <span class="stat-label">Usuarios</span>
-                    <strong class="stat-value">1.284</strong>
+                    <span class="stat-label">Tickets activos</span>
+                    <strong class="stat-value" id="admin-active-tickets">0</strong>
                 </article>
                 <article class="stat-card">
-                    <span class="stat-label">Clientes</span>
-                    <strong class="stat-value">124</strong>
+                    <span class="stat-label">Pendientes de asignación</span>
+                    <strong class="stat-value" id="admin-unassigned-tickets">0</strong>
                 </article>
                 <article class="stat-card">
-                    <span class="stat-label">Contratos</span>
-                    <strong class="stat-value">86</strong>
+                    <span class="stat-label">Tickets resueltos</span>
+                    <strong class="stat-value" id="admin-resolved-tickets">0</strong>
                 </article>
                 <article class="stat-card">
-                    <span class="stat-label">SLA cumplido</span>
-                    <strong class="stat-value">94%</strong>
+                    <span class="stat-label">Cumplimiento SLA</span>
+                    <strong class="stat-value" id="admin-sla-compliance">0%</strong>
                 </article>
             </section>
 
@@ -75,11 +75,11 @@
                 <div class="report-controls">
                     <label class="field">
                         <span>Fecha inicio</span>
-                        <input type="date" id="report-start" value="2026-08-01">
+                        <input type="date" id="report-start">
                     </label>
                     <label class="field">
                         <span>Fecha fin</span>
-                        <input type="date" id="report-end" value="2026-08-31">
+                        <input type="date" id="report-end">
                     </label>
                     <label class="field">
                         <span>Cliente</span>
@@ -209,12 +209,7 @@
             avatar.textContent = user.name.split(' ').map(part => part[0]).slice(0, 2).join('').toUpperCase();
         }
 
-        const reportRows = [
-            { client: 'Banco Norte', from: '2026-08-01', to: '2026-08-31', sla: 96, tickets: 48, alerts: 3, mttr: 4.2, fines: 14500 },
-            { client: 'Innova Logística', from: '2026-08-01', to: '2026-08-31', sla: 89, tickets: 34, alerts: 5, mttr: 5.3, fines: 9200 },
-            { client: 'Retail Max', from: '2026-08-01', to: '2026-08-31', sla: 82, tickets: 27, alerts: 8, mttr: 6.1, fines: 6800 },
-            { client: 'Codeline', from: '2026-08-01', to: '2026-08-31', sla: 91, tickets: 31, alerts: 4, mttr: 4.7, fines: 11200 }
-        ];
+        const reportRows = [];
 
         function populateClientOptions() {
             const clients = ['all', ...new Set(reportRows.map(item => item.client))];
@@ -232,23 +227,18 @@
         }
 
         function matchesDateRange(item) {
-            const start = reportStart.value || '2026-08-01';
-            const end = reportEnd.value || '2026-08-31';
-            return item.from >= start && item.to <= end;
+            return (!reportStart.value || item.from >= reportStart.value)
+                && (!reportEnd.value || item.to <= reportEnd.value);
         }
 
         function renderReports() {
             const selectedClient = reportClient.value;
-            let filtered = reportRows.filter(item => matchesDateRange(item) && (selectedClient === 'all' || item.client === selectedClient));
-
-            if (!filtered.length) {
-                filtered = [{ client: selectedClient === 'all' ? 'Sin datos' : selectedClient, from: reportStart.value, to: reportEnd.value, sla: 0, tickets: 0, alerts: 0, mttr: 0, fines: 0 }];
-            }
-
-            const avgSla = filtered.reduce((sum, item) => sum + item.sla, 0) / filtered.length;
+            const filtered = reportRows.filter(item => matchesDateRange(item) && (selectedClient === 'all' || item.client === selectedClient));
+            const divisor = filtered.length || 1;
+            const avgSla = filtered.reduce((sum, item) => sum + item.sla, 0) / divisor;
             const totalTickets = filtered.reduce((sum, item) => sum + item.tickets, 0);
             const totalAlerts = filtered.reduce((sum, item) => sum + item.alerts, 0);
-            const avgMttr = filtered.reduce((sum, item) => sum + item.mttr, 0) / filtered.length;
+            const avgMttr = filtered.reduce((sum, item) => sum + item.mttr, 0) / divisor;
             const totalFines = filtered.reduce((sum, item) => sum + item.fines, 0);
 
             document.getElementById('sla-rate').textContent = `${avgSla.toFixed(1)}%`;
@@ -256,23 +246,23 @@
             document.getElementById('sla-alerts').textContent = totalAlerts;
             document.getElementById('repair-mttr').textContent = `${avgMttr.toFixed(1)}h`;
             document.getElementById('repair-fines').textContent = formatCurrency(totalFines);
-            document.getElementById('repair-avg').textContent = `${(100 - avgMttr * 2.5).toFixed(0)}%`;
+            document.getElementById('repair-avg').textContent = `${filtered.length ? (100 - avgMttr * 2.5).toFixed(0) : 0}%`;
 
-            document.getElementById('sla-table').innerHTML = filtered.map(item => `
+            document.getElementById('sla-table').innerHTML = filtered.length ? filtered.map(item => `
                 <tr>
                     <td>${item.client}</td>
                     <td>${item.sla}%</td>
                     <td>${item.tickets}</td>
                 </tr>
-            `).join('');
+            `).join('') : '<tr><td colspan="3">Sin registros.</td></tr>';
 
-            document.getElementById('repair-table').innerHTML = filtered.map(item => `
+            document.getElementById('repair-table').innerHTML = filtered.length ? filtered.map(item => `
                 <tr>
                     <td>${item.client}</td>
                     <td>${item.mttr.toFixed(1)}h</td>
                     <td>${formatCurrency(item.fines)}</td>
                 </tr>
-            `).join('');
+            `).join('') : '<tr><td colspan="3">Sin registros.</td></tr>';
             window.getSlaReportData = () => ({
                 title: 'reporte-sla',
                 rows: [
@@ -461,6 +451,11 @@
             }
         ];
 
+        modules.forEach(module => {
+            module.rows = [];
+            module.fields.forEach(field => delete field.value);
+        });
+
         const sideNav = document.getElementById('side-nav');
         const moduleTitle = document.getElementById('module-title');
         const moduleDescription = document.getElementById('module-description');
@@ -478,7 +473,14 @@
             const overview = document.querySelector('.risk-overview');
             try {
                 const result = await SlaApi.request('/api/tickets');
-                const tickets = result.data.filter(ticket => ticket.status === 'activo');
+                const allTickets = result.data;
+                const tickets = allTickets.filter(ticket => ticket.status === 'activo');
+                const resolvedTickets = allTickets.filter(ticket => ticket.status === 'resuelto' || ticket.status === 'cerrado');
+                const compliantTickets = resolvedTickets.filter(ticket => ticket.consumedPercentage < 100);
+                document.getElementById('admin-active-tickets').textContent = tickets.length;
+                document.getElementById('admin-unassigned-tickets').textContent = tickets.filter(ticket => !ticket.assignedTech).length;
+                document.getElementById('admin-resolved-tickets').textContent = resolvedTickets.length;
+                document.getElementById('admin-sla-compliance').textContent = `${resolvedTickets.length ? Math.round(compliantTickets.length / resolvedTickets.length * 100) : 0}%`;
                 overview.replaceChildren();
 
                 if (!tickets.length) {
@@ -562,21 +564,21 @@
                 <label class="field">
                     <span>${field.label}</span>
                     ${field.type === 'select'
-                        ? `<select>
+                        ? `<select><option value="" selected>Seleccionar...</option>
                             ${field.options.map(option => `<option ${option === field.value ? 'selected' : ''}>${option}</option>`).join('')}
                           </select>`
                         : field.type === 'date'
-                            ? `<input type="date" value="${field.value}">`
-                            : `<input type="${field.type}" value="${field.value}">`}
+                                                        ? `<input type="date" value="${field.value || ''}">`
+                            : `<input type="${field.type}" value="${field.value || ''}">`}
                 </label>
             `).join('');
 
             tableHead.innerHTML = module.columns.map(column => `<th>${column}</th>`).join('');
-            tableBody.innerHTML = module.rows.map(row => `
+            tableBody.innerHTML = module.rows.length ? module.rows.map(row => `
                 <tr>
                     ${row.map(cell => `<td>${cell}</td>`).join('')}
                 </tr>
-            `).join('');
+            `).join('') : `<tr><td colspan="${module.columns.length}">Sin registros.</td></tr>`;
         }
 
         renderSidebar();

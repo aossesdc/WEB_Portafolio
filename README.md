@@ -2,7 +2,7 @@
 
 ## Base de datos y API local
 
-El backend usa SQLite. La base `backend/data/sla-control.sqlite` se crea automáticamente al iniciar el servidor y conserva usuarios, sesiones y tickets entre reinicios. La primera ejecución carga los datos de demostración; los siguientes inicios no reemplazan los registros.
+El backend usa SQLite. La base `backend/data/sla-control.sqlite` se crea automáticamente al iniciar el servidor y conserva usuarios, sesiones y tickets entre reinicios. La tabla de tickets inicia vacía y solo contiene solicitudes que se creen desde la aplicación. Se conservan las cuentas de acceso de demostración para poder entrar a cada perfil.
 
 Requisitos: Node.js 20 o superior.
 
