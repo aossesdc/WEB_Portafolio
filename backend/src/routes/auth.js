@@ -1,13 +1,15 @@
 const express = require('express');
 const crypto = require('crypto');
-const { users } = require('../data/mockData');
+const { createSession, database, getUserByEmail } = require('../data/database');
 
 const router = express.Router();
 
-function createSessionToken(user) {
-  return crypto.createHash('sha256')
-    .update(`${user.email}:${user.role}:${Date.now()}:${Math.random()}`)
-    .digest('hex');
+function verifyPassword(password, passwordHash) {
+  const [salt, storedHash] = String(passwordHash || '').split(':');
+  if (!salt || !storedHash) return false;
+  const expected = Buffer.from(storedHash, 'hex');
+  const actual = crypto.scryptSync(password, Buffer.from(salt, 'hex'), 64);
+  return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
 }
 
 router.post('/login', (req, res) => {
@@ -17,18 +19,21 @@ router.post('/login', (req, res) => {
     return res.status(400).json({ ok: false, message: 'Email y contraseña son obligatorios.' });
   }
 
-  const user = users.find(item => item.email.toLowerCase() === String(email).trim().toLowerCase() && item.password === password);
+  const user = getUserByEmail(String(email).trim());
 
-  if (!user) {
+  if (!user || !verifyPassword(password, user.passwordHash)) {
     return res.status(401).json({ ok: false, message: 'Credenciales inválidas.' });
   }
 
-  const token = createSessionToken(user);
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  database.prepare('DELETE FROM sessions WHERE expires_at <= ?').run(new Date().toISOString());
+  createSession(token, user.id, expiresAt);
 
   return res.json({
     ok: true,
     sessionToken: token,
-    expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    expiresAt,
     user: {
       id: user.id,
       name: user.name,

@@ -41,15 +41,8 @@
             </div>
         </section>
     </main>
+    <script src="../js/sla-api.js"></script>
     <script>
-        const clientAccounts = {
-            'cliente@empresa.cl': {
-                password: 'Cliente123',
-                name: 'Carlos Medina',
-                profile: 'Cliente corporativo'
-            }
-        };
-
         applySavedPreferences();
 
         function applySavedPreferences() {
@@ -86,7 +79,7 @@
             toggle.setAttribute('aria-label', isHidden ? 'Ocultar contraseña' : 'Mostrar contraseña');
         }
 
-        document.getElementById('clientForm').addEventListener('submit', function (event) {
+        document.getElementById('clientForm').addEventListener('submit', async function (event) {
             event.preventDefault();
             const errorBox = document.getElementById('auth-error');
             const email = document.getElementById('email').value.trim().toLowerCase();
@@ -98,21 +91,23 @@
                 return;
             }
 
-            const account = clientAccounts[email];
-            if (!account || account.password !== password) {
-                errorBox.textContent = 'Credenciales incorrectas para este perfil de cliente.';
+            const submitButton = event.currentTarget.querySelector('[type="submit"]');
+            submitButton.disabled = true;
+            errorBox.style.display = 'none';
+            try {
+                const result = await SlaApi.login(email, password);
+                if (result.user.role !== 'client') throw new Error('Estas credenciales no corresponden a una cuenta cliente.');
+                localStorage.setItem('sla-session-token', result.sessionToken);
+                localStorage.setItem('sla-client-user', JSON.stringify(result.user));
+                localStorage.removeItem('sla-executive-user');
+                window.location.href = 'cliente_dashboard.html';
+            } catch (error) {
+                errorBox.textContent = error.message;
                 errorBox.style.display = 'block';
                 generateCaptcha();
-                return;
+            } finally {
+                submitButton.disabled = false;
             }
-
-            localStorage.setItem('sla-client-user', JSON.stringify({
-                email,
-                name: account.name,
-                profile: account.profile
-            }));
-
-            window.location.href = 'cliente_dashboard.html';
         });
     </script>
     <script src="../js/preferencias-globales.js"></script>

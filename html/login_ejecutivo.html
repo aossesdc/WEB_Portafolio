@@ -42,22 +42,8 @@
             </div>
         </section>
     </main>
+    <script src="../js/sla-api.js"></script>
     <script>
-        const executiveAccounts = {
-            'ejecutivo.trabajo@empresa.cl': {
-                password: 'Trabajo123',
-                name: 'Ana Martínez',
-                profile: 'Ejecutivo de trabajo',
-                page: 'ejecutivo_trabajo.html'
-            },
-            'ejecutivo.soporte@empresa.cl': {
-                password: 'Soporte123',
-                name: 'Luis Rojas',
-                profile: 'Ejecutivo de soluciones y soporte',
-                page: 'ejecutivo_soporte.html'
-            }
-        };
-
         let captchaValue = '';
         generateCaptcha();
 
@@ -77,7 +63,7 @@
             return true;
         }
 
-        document.getElementById('executiveForm').addEventListener('submit', function (event) {
+        document.getElementById('executiveForm').addEventListener('submit', async function (event) {
             event.preventDefault();
             const errorBox = document.getElementById('auth-error');
             const email = document.getElementById('email').value.trim().toLowerCase();
@@ -89,23 +75,24 @@
                 return;
             }
 
-            const account = executiveAccounts[email];
-
-            if (!account || account.password !== password) {
-                errorBox.textContent = 'Credenciales incorrectas para este perfil ejecutivo.';
+            const submitButton = event.currentTarget.querySelector('[type="submit"]');
+            submitButton.disabled = true;
+            errorBox.style.display = 'none';
+            try {
+                const result = await SlaApi.login(email, password);
+                if (result.user.role !== 'executive') throw new Error('Estas credenciales no corresponden a una cuenta ejecutiva.');
+                const page = result.user.profile === 'Ejecutivo de soluciones y soporte' ? 'ejecutivo_soporte.html' : 'ejecutivo_trabajo.html';
+                localStorage.setItem('sla-session-token', result.sessionToken);
+                localStorage.setItem('sla-executive-user', JSON.stringify({ ...result.user, page }));
+                localStorage.removeItem('sla-client-user');
+                window.location.href = page;
+            } catch (error) {
+                errorBox.textContent = error.message;
                 errorBox.style.display = 'block';
                 generateCaptcha();
-                return;
+            } finally {
+                submitButton.disabled = false;
             }
-
-            localStorage.setItem('sla-executive-user', JSON.stringify({
-                email,
-                name: account.name,
-                profile: account.profile,
-                page: account.page
-            }));
-
-            window.location.href = account.page;
         });
 
         applySavedPreferences();

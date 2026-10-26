@@ -33,7 +33,7 @@
                         <strong id="user-name">María López</strong><br>
                         <small id="user-role">Administrador general</small>
                     </div>
-                    <a class="logout" href="../index.html" onclick="localStorage.removeItem('sla-admin-user')">Cerrar sesión</a>
+                    <a class="logout" href="../index.html" onclick="localStorage.removeItem('sla-admin-user'); localStorage.removeItem('sla-session-token')">Cerrar sesión</a>
                 </div>
             </header>
 
@@ -57,21 +57,7 @@
             </section>
 
             <section class="risk-overview dashboard-overview" aria-label="riesgo de incumplimiento">
-                <article class="risk-card">
-                    <h3>Ticket INC-2048</h3>
-                    <span class="risk-badge critical" data-consumed="91">Crítico · 91%</span>
-                    <div class="risk-meter"><span class="active"></span><span class="active"></span><span class="active"></span></div>
-                </article>
-                <article class="risk-card">
-                    <h3>Ticket SVC-774</h3>
-                    <span class="risk-badge medium" data-consumed="68">Medio · 68%</span>
-                    <div class="risk-meter"><span class="active"></span><span class="active"></span><span></span></div>
-                </article>
-                <article class="risk-card">
-                    <h3>Ticket LOG-315</h3>
-                    <span class="risk-badge low" data-consumed="41">Bajo · 41%</span>
-                    <div class="risk-meter"><span class="active"></span><span></span><span></span></div>
-                </article>
+                <article class="risk-card"><p>Cargando tickets de la base de datos...</p></article>
             </section>
 
             <section class="report-panel dashboard-overview">
@@ -207,6 +193,7 @@
         </main>
     </div>
 
+    <script src="../js/sla-api.js"></script>
     <script>
         const user = JSON.parse(localStorage.getItem('sla-admin-user') || '{}');
         const userName = document.getElementById('user-name');
@@ -486,6 +473,53 @@
             if (percentage >= 60) return { label: 'Medio', className: 'medium' };
             return { label: 'Bajo', className: 'low' };
         }
+
+        async function loadAdminTickets() {
+            const overview = document.querySelector('.risk-overview');
+            try {
+                const result = await SlaApi.request('/api/tickets');
+                const tickets = result.data.filter(ticket => ticket.status === 'activo');
+                overview.replaceChildren();
+
+                if (!tickets.length) {
+                    const emptyCard = document.createElement('article');
+                    emptyCard.className = 'risk-card';
+                    emptyCard.textContent = 'No hay tickets activos.';
+                    overview.appendChild(emptyCard);
+                    return;
+                }
+
+                tickets.forEach(ticket => {
+                    const risk = getRiskCategory(ticket.consumedPercentage);
+                    const card = document.createElement('article');
+                    card.className = 'risk-card';
+                    const title = document.createElement('h3');
+                    title.textContent = `Ticket ${ticket.id}`;
+                    const client = document.createElement('p');
+                    client.textContent = `${ticket.client} · ${ticket.branch || 'Sin sucursal'}`;
+                    const badge = document.createElement('span');
+                    badge.className = `risk-badge ${risk.className}`;
+                    badge.textContent = `${risk.label} · ${ticket.consumedPercentage}%`;
+                    const meter = document.createElement('div');
+                    meter.className = 'risk-meter';
+                    const activeBars = ticket.consumedPercentage >= 85 ? 3 : ticket.consumedPercentage >= 60 ? 2 : 1;
+                    for (let index = 0; index < 3; index += 1) {
+                        const bar = document.createElement('span');
+                        if (index < activeBars) bar.className = 'active';
+                        meter.appendChild(bar);
+                    }
+                    card.append(title, client, badge, meter);
+                    overview.appendChild(card);
+                });
+            } catch (error) {
+                overview.replaceChildren();
+                const errorCard = document.createElement('article');
+                errorCard.className = 'risk-card';
+                errorCard.textContent = error.message;
+                overview.appendChild(errorCard);
+            }
+        }
+        loadAdminTickets();
 
         document.querySelectorAll('[data-consumed]').forEach(item => {
             const percentage = Number(item.dataset.consumed || 0);

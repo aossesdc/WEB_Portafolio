@@ -38,15 +38,8 @@
             </div>
         </section>
     </main>
+    <script src="../js/sla-api.js"></script>
     <script>
-        const adminAccounts = {
-            'admin@empresa.cl': {
-                password: 'Admin123',
-                name: 'María López',
-                profile: 'Administrador general'
-            }
-        };
-
         applySavedPreferences();
 
         function applySavedPreferences() {
@@ -80,7 +73,7 @@
             return true;
         }
 
-        document.getElementById('adminForm').addEventListener('submit', function (event) {
+        document.getElementById('adminForm').addEventListener('submit', async function (event) {
             event.preventDefault();
             const errorBox = document.getElementById('auth-error');
             const email = document.getElementById('email').value.trim().toLowerCase();
@@ -92,21 +85,24 @@
                 return;
             }
 
-            const account = adminAccounts[email];
-            if (!account || account.password !== password) {
-                errorBox.textContent = 'Credenciales incorrectas para este perfil de administrador.';
+            const submitButton = event.currentTarget.querySelector('[type="submit"]');
+            submitButton.disabled = true;
+            errorBox.style.display = 'none';
+            try {
+                const result = await SlaApi.login(email, password);
+                if (result.user.role !== 'admin') throw new Error('Estas credenciales no corresponden a una cuenta administradora.');
+                localStorage.setItem('sla-session-token', result.sessionToken);
+                localStorage.setItem('sla-admin-user', JSON.stringify(result.user));
+                localStorage.removeItem('sla-client-user');
+                localStorage.removeItem('sla-executive-user');
+                window.location.href = 'administrador_dashboard.html';
+            } catch (error) {
+                errorBox.textContent = error.message;
                 errorBox.style.display = 'block';
                 generateCaptcha();
-                return;
+            } finally {
+                submitButton.disabled = false;
             }
-
-            localStorage.setItem('sla-admin-user', JSON.stringify({
-                email,
-                name: account.name,
-                profile: account.profile
-            }));
-
-            window.location.href = 'administrador_dashboard.html';
         });
     </script>
     <script src="../js/preferencias-globales.js"></script>

@@ -1,5 +1,5 @@
 const express = require('express');
-const { tickets } = require('../data/mockData');
+const { getAllTickets } = require('../data/database');
 const { calculateConsumedPercentage, getRiskLevel } = require('../utils/sla');
 
 const router = express.Router();
@@ -22,7 +22,7 @@ router.get('/sla', (req, res) => {
   const start = req.query.start || '2026-08-01';
   const end = req.query.end || '2026-08-31';
 
-  const filtered = tickets
+  const filtered = getAllTickets()
     .filter(ticket => ticket.createdAt >= new Date(start).toISOString() && ticket.createdAt <= new Date(end).toISOString())
     .filter(ticket => client === 'all' || ticket.client === client)
     .map(buildTicketMetrics);
@@ -43,7 +43,7 @@ router.get('/sla', (req, res) => {
 
 router.get('/maintenance', (req, res) => {
   const client = req.query.client || 'all';
-  const filtered = tickets
+  const filtered = getAllTickets()
     .filter(ticket => client === 'all' || ticket.client === client)
     .map(buildTicketMetrics);
 
@@ -66,7 +66,7 @@ router.get('/export/:format', (req, res) => {
   const { format } = req.params;
   const { client = 'all', start = '2026-08-01', end = '2026-08-31' } = req.query;
 
-  const rows = tickets
+  const rows = getAllTickets()
     .filter(ticket => ticket.createdAt >= new Date(start).toISOString() && ticket.createdAt <= new Date(end).toISOString())
     .filter(ticket => client === 'all' || ticket.client === client)
     .map(buildTicketMetrics);
