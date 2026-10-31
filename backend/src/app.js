@@ -4,6 +4,7 @@ const path = require('path');
 const authRoutes = require('./routes/auth');
 const ticketsRoutes = require('./routes/tickets');
 const reportsRoutes = require('./routes/reports');
+const maintainersRoutes = require('./routes/maintainers');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/img', express.static(path.join(webRoot, 'img')));
 app.use('/api/auth', authRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/maintainers', maintainersRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

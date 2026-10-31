@@ -481,6 +481,34 @@
             flex-wrap: wrap;
         }
 
+        .module-search-input {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            min-height: 42px;
+            padding: 9px 12px;
+            width: min(220px, 100%);
+        }
+
+        .module-feedback {
+            color: var(--muted);
+            min-height: 1.4em;
+            margin: 10px 0 0;
+        }
+
+        .maintainer-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .maintainer-actions button {
+            min-height: 36px;
+            padding: 8px 10px;
+            white-space: nowrap;
+        }
+
         .primary-btn,
         .secondary-btn,
         .ghost-btn,

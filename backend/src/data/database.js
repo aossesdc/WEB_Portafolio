@@ -45,8 +45,17 @@ database.exec(`
     assigned_tech TEXT
   );
 
+  CREATE TABLE IF NOT EXISTS maintainer_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    module_key TEXT NOT NULL,
+    record_data TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
   CREATE INDEX IF NOT EXISTS tickets_client_email_idx ON tickets(client_email);
   CREATE INDEX IF NOT EXISTS tickets_created_at_idx ON tickets(created_at);
+  CREATE INDEX IF NOT EXISTS maintainer_module_idx ON maintainer_records(module_key);
 `);
 
 function hashPassword(password) {
@@ -182,15 +191,67 @@ function updateTicket(id, updates) {
   return getTicketById(id);
 }
 
+function mapMaintainerRecord(row) {
+  return {
+    id: row.id,
+    moduleKey: row.module_key,
+    data: JSON.parse(row.record_data),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function listMaintainerRecords(moduleKey) {
+  return database.prepare(`
+    SELECT id, module_key, record_data, created_at, updated_at
+    FROM maintainer_records WHERE module_key = ? ORDER BY id DESC
+  `).all(moduleKey).map(mapMaintainerRecord);
+}
+
+function getMaintainerRecord(id, moduleKey) {
+  const row = database.prepare(`
+    SELECT id, module_key, record_data, created_at, updated_at
+    FROM maintainer_records WHERE id = ? AND module_key = ?
+  `).get(id, moduleKey);
+  return row ? mapMaintainerRecord(row) : null;
+}
+
+function createMaintainerRecord(moduleKey, data) {
+  const now = new Date().toISOString();
+  const result = database.prepare(`
+    INSERT INTO maintainer_records (module_key, record_data, created_at, updated_at)
+    VALUES (?, ?, ?, ?)
+  `).run(moduleKey, JSON.stringify(data), now, now);
+  return getMaintainerRecord(Number(result.lastInsertRowid), moduleKey);
+}
+
+function updateMaintainerRecord(id, moduleKey, data) {
+  const result = database.prepare(`
+    UPDATE maintainer_records SET record_data = ?, updated_at = ?
+    WHERE id = ? AND module_key = ?
+  `).run(JSON.stringify(data), new Date().toISOString(), id, moduleKey);
+  return result.changes ? getMaintainerRecord(id, moduleKey) : null;
+}
+
+function deleteMaintainerRecord(id, moduleKey) {
+  return database.prepare('DELETE FROM maintainer_records WHERE id = ? AND module_key = ?')
+    .run(id, moduleKey).changes > 0;
+}
+
 module.exports = {
   createSession,
+  createMaintainerRecord,
   database,
+  deleteMaintainerRecord,
   deleteSession,
   getAllTickets,
+  getMaintainerRecord,
+  listMaintainerRecords,
   getSessionByToken,
   getTicketById,
   getTicketsByClient,
   getUserByEmail,
   insertTicket,
-  updateTicket
+  updateTicket,
+  updateMaintainerRecord
 };

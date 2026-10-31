@@ -156,9 +156,9 @@
                         <p class="module-description" id="module-description"></p>
                     </div>
                     <div class="module-actions">
-                        <button class="secondary-btn" type="button">Nuevo</button>
-                        <button class="ghost-btn" type="button">Buscar</button>
-                        <button class="primary-btn" type="button">Guardar</button>
+                        <button class="secondary-btn" id="module-new" type="button">Nuevo</button>
+                        <input class="module-search-input" id="module-search" type="search" placeholder="Buscar registros" aria-label="Buscar registros">
+                        <button class="primary-btn" id="module-save" type="button">Guardar</button>
                     </div>
                 </div>
 
@@ -167,9 +167,10 @@
                         <form id="module-form">
                             <div class="field-grid" id="field-grid"></div>
                             <div class="form-actions">
-                                <button type="button" class="secondary-btn">Cancelar</button>
-                                <button type="submit" class="primary-btn">Guardar cambios</button>
+                                <button type="button" class="secondary-btn" id="module-cancel">Cancelar</button>
+                                <button type="submit" class="primary-btn" id="module-submit">Agregar registro</button>
                             </div>
+                            <p class="module-feedback" id="module-feedback" role="status" aria-live="polite"></p>
                         </form>
                     </div>
 
@@ -306,7 +307,7 @@
                     { label: 'Permisos', type: 'text', value: 'Tickets, reportes, clientes' },
                     { label: 'Estado', type: 'select', options: ['Activo', 'Inactivo'], value: 'Activo' }
                 ],
-                columns: ['Rol', 'Nivel', 'Permisos', 'Estado'],
+                columns: ['Nombre del rol', 'Nivel', 'Permisos', 'Estado'],
                 rows: [
                     ['Supervisor', 'Nivel 2', 'Tickets, reportes, clientes', 'Activo'],
                     ['Analista', 'Nivel 1', 'Tickets y reportes', 'Activo'],
@@ -462,6 +463,12 @@
         const fieldGrid = document.getElementById('field-grid');
         const tableHead = document.getElementById('table-head');
         const tableBody = document.getElementById('table-body');
+        const moduleForm = document.getElementById('module-form');
+        const moduleSearch = document.getElementById('module-search');
+        const moduleFeedback = document.getElementById('module-feedback');
+        let activeModule = null;
+        let moduleRecords = [];
+        let editingRecordId = null;
 
         function getRiskCategory(percentage) {
             if (percentage >= 85) return { label: 'Crítico', className: 'critical' };
@@ -555,31 +562,151 @@
         }
 
         function renderModule(module, focusModule) {
-        document.querySelector('.admin-shell').classList.toggle('module-view-active', Boolean(focusModule));
-        if (!module) return;
-        moduleTitle.textContent = module.title;
+            document.querySelector('.admin-shell').classList.toggle('module-view-active', Boolean(focusModule));
+            if (!module) return;
+            activeModule = module;
+            moduleRecords = [];
+            moduleTitle.textContent = module.title;
             moduleDescription.textContent = module.description;
             document.querySelector('.module-panel').dataset.module = module.key;
             fieldGrid.innerHTML = module.fields.map(field => `
                 <label class="field">
                     <span>${field.label}</span>
                     ${field.type === 'select'
-                        ? `<select><option value="" selected>Seleccionar...</option>
-                            ${field.options.map(option => `<option ${option === field.value ? 'selected' : ''}>${option}</option>`).join('')}
+                        ? `<select name="${field.label}" required><option value="" selected>Seleccionar...</option>
+                            ${field.options.map(option => `<option value="${option}">${option}</option>`).join('')}
                           </select>`
                         : field.type === 'date'
-                                                        ? `<input type="date" value="${field.value || ''}">`
-                            : `<input type="${field.type}" value="${field.value || ''}">`}
+                            ? `<input type="date" name="${field.label}" required>`
+                            : `<input type="${field.type}" name="${field.label}" required maxlength="500">`}
                 </label>
             `).join('');
 
-            tableHead.innerHTML = module.columns.map(column => `<th>${column}</th>`).join('');
-            tableBody.innerHTML = module.rows.length ? module.rows.map(row => `
-                <tr>
-                    ${row.map(cell => `<td>${cell}</td>`).join('')}
-                </tr>
-            `).join('') : `<tr><td colspan="${module.columns.length}">Sin registros.</td></tr>`;
+            tableHead.replaceChildren();
+            module.columns.forEach(column => {
+                const heading = document.createElement('th');
+                heading.textContent = column;
+                tableHead.appendChild(heading);
+            });
+            const actionHeading = document.createElement('th');
+            actionHeading.textContent = 'Acciones';
+            tableHead.appendChild(actionHeading);
+            moduleSearch.value = '';
+            resetModuleForm();
+            loadModuleRecords();
         }
+
+        function resetModuleForm() {
+            moduleForm.reset();
+            editingRecordId = null;
+            moduleFeedback.textContent = '';
+            document.getElementById('module-submit').textContent = 'Agregar registro';
+        }
+
+        function renderModuleRecords() {
+            if (!activeModule) return;
+            tableBody.replaceChildren();
+            const query = moduleSearch.value.trim().toLocaleLowerCase();
+            const visibleRecords = moduleRecords.filter(record =>
+                Object.values(record.data).some(value => String(value).toLocaleLowerCase().includes(query))
+            );
+
+            if (!visibleRecords.length) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = activeModule.columns.length + 1;
+                cell.textContent = moduleRecords.length ? 'No hay coincidencias.' : 'Sin registros.';
+                row.appendChild(cell);
+                tableBody.appendChild(row);
+                return;
+            }
+
+            visibleRecords.forEach(record => {
+                const row = document.createElement('tr');
+                activeModule.columns.forEach(column => {
+                    const cell = document.createElement('td');
+                    cell.textContent = record.data[column] || '';
+                    row.appendChild(cell);
+                });
+
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'maintainer-actions';
+                const editButton = document.createElement('button');
+                editButton.className = 'secondary-btn';
+                editButton.type = 'button';
+                editButton.textContent = 'Editar';
+                editButton.addEventListener('click', () => {
+                    editingRecordId = record.id;
+                    activeModule.fields.forEach(field => {
+                        moduleForm.elements.namedItem(field.label).value = record.data[field.label] || '';
+                    });
+                    moduleFeedback.textContent = `Editando registro ${record.id}.`;
+                    document.getElementById('module-submit').textContent = 'Actualizar registro';
+                });
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'ghost-btn';
+                deleteButton.type = 'button';
+                deleteButton.textContent = 'Eliminar';
+                deleteButton.addEventListener('click', async () => {
+                    if (!window.confirm('¿Eliminar este registro? Esta acción no se puede deshacer.')) return;
+                    deleteButton.disabled = true;
+                    try {
+                        await SlaApi.request(`/api/maintainers/${activeModule.key}/${record.id}`, { method: 'DELETE' });
+                        if (editingRecordId === record.id) resetModuleForm();
+                        moduleFeedback.textContent = 'Registro eliminado.';
+                        await loadModuleRecords();
+                    } catch (error) {
+                        moduleFeedback.textContent = error.message;
+                        deleteButton.disabled = false;
+                    }
+                });
+                actionsCell.append(editButton, deleteButton);
+                row.appendChild(actionsCell);
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function loadModuleRecords() {
+            if (!activeModule) return;
+            try {
+                const response = await SlaApi.request(`/api/maintainers/${activeModule.key}`);
+                moduleRecords = response.data;
+                renderModuleRecords();
+            } catch (error) {
+                moduleRecords = [];
+                renderModuleRecords();
+                moduleFeedback.textContent = error.message;
+            }
+        }
+
+        moduleForm.addEventListener('submit', async event => {
+            event.preventDefault();
+            if (!activeModule) return;
+            const data = Object.fromEntries(new FormData(moduleForm).entries());
+            const submitButton = document.getElementById('module-submit');
+            submitButton.disabled = true;
+            moduleFeedback.textContent = '';
+            try {
+                const path = `/api/maintainers/${activeModule.key}${editingRecordId ? `/${editingRecordId}` : ''}`;
+                const response = await SlaApi.request(path, {
+                    method: editingRecordId ? 'PUT' : 'POST',
+                    body: JSON.stringify({ data })
+                });
+                moduleFeedback.textContent = response.message;
+                resetModuleForm();
+                await loadModuleRecords();
+            } catch (error) {
+                moduleFeedback.textContent = error.message;
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        document.getElementById('module-new').addEventListener('click', resetModuleForm);
+        document.getElementById('module-cancel').addEventListener('click', resetModuleForm);
+        document.getElementById('module-save').addEventListener('click', () => moduleForm.requestSubmit());
+        moduleSearch.addEventListener('input', renderModuleRecords);
 
         renderSidebar();
     </script>
