@@ -1,5 +1,2 @@
-.env
-node_modules/
-data/*.sqlite
-data/*.sqlite-shm
-data/*.sqlite-wal
+# Server-generated static assets
+staticfiles/

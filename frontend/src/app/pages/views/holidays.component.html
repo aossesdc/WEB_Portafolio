@@ -1,0 +1,47 @@
+<section class="accounts-panel">
+  <div class="heading">
+    <div>
+      <h2>Feriados</h2>
+      <p>Feriados guardados para la jornada de lunes a viernes.</p>
+    </div>
+    <button type="button" (click)="load()" [disabled]="loading()">{{ preview() ? 'Actualizar lista' : 'Sincronizar y actualizar' }}</button>
+  </div>
+  <p>Los feriados que caen sábado o domingo se excluyen de esta lista de días laborales.</p>
+  <p>Se agregan solo feriados nacionales de lunes a viernes desde la <a href="https://api.roison.cl/feriados.json" target="_blank" rel="noopener noreferrer">API de Roison</a>. Las fechas existentes no se modifican.</p>
+  @if (preview()) { <p>La vista previa solo consulta datos guardados; inicia sesión como administrador para sincronizar.</p> }
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+  @if (storageWarning()) { <p role="status">{{ storageWarning() }}</p> }
+  <div class="holiday-filters">
+    <label class="search" for="holiday-year">
+      <span>Año</span>
+      <select id="holiday-year" [ngModel]="year()" (ngModelChange)="setYear($event)">
+        @if (!years().includes(year())) { <option [value]="year()">{{ year() }} (sin datos)</option> }
+        @for (availableYear of years(); track availableYear) {
+          <option [value]="availableYear">{{ availableYear }}</option>
+        }
+      </select>
+    </label>
+    <label class="search" for="holiday-search">
+      <span>Buscar feriados</span>
+      <input id="holiday-search" type="search" [ngModel]="search()" (ngModelChange)="search.set($event)"
+        placeholder="Nombre o tipo" />
+    </label>
+  </div>
+  @if (loading()) {
+    <p role="status">Cargando feriados...</p>
+  } @else {
+    <div class="list">
+      @for (holiday of visibleHolidays(); track holiday.id) {
+        <article class="account-card">
+          <div>
+            <strong>{{ holiday.title }}</strong>
+            <p>{{ formatDate(holiday.date) }} · {{ holiday.type }}</p>
+            <p>{{ holiday.is_irrenunciable ? 'Irrenunciable' : 'No irrenunciable' }}</p>
+          </div>
+        </article>
+      } @empty {
+        <p>{{ years().includes(year()) ? 'No hay feriados que coincidan con los filtros.' : 'No hay feriados guardados para este año.' }}</p>
+      }
+    </div>
+  }
+</section>

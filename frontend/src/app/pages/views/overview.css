@@ -1,0 +1,41 @@
+.overview-heading, .overview-panel-heading, .overview-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.overview-heading { margin: 0 0 20px; }
+.overview-heading h2, .overview-panel-heading h2 { margin: 0 0 4px; font-size: 1.25rem; }
+.overview-heading p, .overview-panel-heading p { margin: 0; color: var(--muted); }
+.overview-panel-heading { margin-bottom: 16px; }
+.overview-exports { display: flex; flex-wrap: wrap; gap: 10px; }
+.overview-exports .button { color: #fff; font-weight: 700; border: 1px solid transparent; }
+.overview-exports .export-csv { background: #16703b; }
+.overview-exports .export-pdf { background: #b4232c; }
+.overview-exports .button:hover { filter: brightness(.9); }
+.overview-exports .button:disabled { opacity: .7; cursor: wait; }
+.overview-exports .button:focus-visible { outline: 3px solid var(--accent-dark); outline-offset: 3px; }
+.overview-error { color: var(--danger); }
+.overview-filter { padding: 12px 16px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.ticket-form-heading h2 { margin: 0 0 6px; font-size: 1.25rem; }
+.ticket-form-heading p { color: var(--muted); }
+.ticket-form { max-width: 700px; }
+.ticket-description { margin-top: 6px; }
+.ticket-description summary { color: var(--accent-dark); cursor: pointer; }
+.ticket-description p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.risk-level { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-muted); }
+.risk-level strong { grid-column: 2; font-size: 1.65rem; line-height: 1.1; }
+.risk-level > span:last-child { grid-column: 2; color: var(--muted); font-size: .85rem; }
+.risk-indicator { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.risk-light { width: 14px; height: 14px; flex: 0 0 14px; border-radius: 50%; border: 1px solid rgb(0 0 0 / 25%); background: #6b7280; }
+.risk-low .risk-light { background: #16803c; }
+.risk-medium .risk-light { background: #eab308; }
+.risk-high .risk-light { background: #dc2626; }
+
+@media (max-width: 560px) {
+  .overview-exports { width: 100%; }
+  .overview-exports .button { flex: 1 1 150px; }
+}

@@ -1,0 +1,93 @@
+<section class="accounts-panel">
+  @if (formOpen()) {
+    <div class="form-wrap">
+      <p class="eyebrow">Administración de personal</p>
+      <h2>{{ editing() ? 'Editar personal operativo' : 'Registrar personal operativo' }}</h2>
+      <p class="subtitle">Selecciona una cuenta existente, su sucursal y disponibilidad.</p>
+      <form #form="ngForm" (ngSubmit)="save(form)" class="account-form">
+        <label for="person-user">Cuenta de soporte o ejecutivo</label>
+        <select id="person-user" name="userId" [(ngModel)]="userId" required>
+          <option [ngValue]="null">Selecciona una cuenta</option>
+          @if (editing() && !users().some(userMatchesSelection)) {
+            <option [ngValue]="editing()?.user_id">{{ editing()?.user_name }} (cuenta existente no disponible para nuevos registros)</option>
+          }
+          @for (user of users(); track user.id) {
+            <option [ngValue]="user.id" [disabled]="isRegistered(user)">{{ user.name }} · {{ user.email }} · {{ user.role === 'soporte' ? 'Soporte' : 'Ejecutivo' }}{{ user.active ? '' : ' (cuenta inactiva)' }}{{ isRegistered(user) ? ' (ya registrada)' : '' }}</option>
+          }
+        </select>
+        @if (!users().length) { <p>No hay cuentas de soporte o ejecutivo disponibles.</p> }
+        <label for="person-branch">Sucursal asignada</label>
+        <select id="person-branch" name="branchId" [(ngModel)]="branchId" required>
+          <option [ngValue]="null">Selecciona una sucursal</option>
+          @if (editing() && !branches().some(branchMatchesSelection)) {
+            <option [ngValue]="editing()?.branch_id">{{ editing()?.branch_name }} (sucursal ya no disponible)</option>
+          }
+          @for (branch of branches(); track branch.id) {
+            <option [ngValue]="branch.id">{{ branch.name }}{{ branch.active ? '' : ' (inactiva)' }}</option>
+          }
+        </select>
+        @if (!branches().length) { <p>No hay sucursales disponibles. Registra una sucursal primero.</p> }
+        <label for="person-category">Categoría de equipos (opcional)</label>
+        <select id="person-category" name="categoryId" [(ngModel)]="categoryId">
+          <option [ngValue]="null">Sin categoría</option>
+          @if (editing()?.category_id !== null && editing()?.category_id !== undefined && !categories().some(categoryMatchesSelection)) {
+            <option [ngValue]="editing()?.category_id">Categoría ya no disponible (#{{ editing()?.category_id }})</option>
+          }
+          @for (category of categories(); track category.id) {
+            <option [ngValue]="category.id">{{ category.name }}{{ category.active ? '' : ' (inactiva)' }}</option>
+          }
+        </select>
+        <label for="person-availability">Disponibilidad</label>
+        <select id="person-availability" name="availability" [(ngModel)]="availability" required>
+          <option value="Disponible">Disponible</option>
+          <option value="Asignado">Asignado</option>
+          <option value="En Terreno">En Terreno</option>
+          <option value="Licencia">Licencia</option>
+          <option value="No Disponible">No Disponible</option>
+        </select>
+        @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+        <div class="form-actions">
+          <button class="primary" type="submit" [disabled]="loading() || form.invalid">{{ editing() ? 'Guardar cambios' : 'Registrar personal' }}</button>
+          <button type="button" (click)="cancel()" [disabled]="loading()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  } @else {
+    <div class="heading">
+      <div><h2>Gestión de personal operativo</h2><p>Administra el catálogo de personal y su disponibilidad.</p></div>
+      <div class="actions">
+        <button type="button" (click)="load()" [disabled]="loading()">Actualizar lista</button>
+        <button class="primary" type="button" (click)="open(null)" [disabled]="loading()">Registrar personal</button>
+      </div>
+    </div>
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    @if (notice()) { <p class="notice" role="status">{{ notice() }}</p> }
+    <div class="list">
+      <h3>Personal registrado</h3>
+      <label class="search" for="person-search"><span>Buscar personal</span>
+        <input id="person-search" type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Nombre, correo, rol, sucursal, categoría o disponibilidad" />
+      </label>
+      @if (loading()) { <p role="status">Cargando...</p> }
+      @for (person of filteredPersonnel(); track person.id) {
+        <article class="account-card">
+          <div>
+            <strong>{{ person.user_name }}</strong>
+            <p>{{ person.user_email }} · {{ person.user_role }}{{ person.user_active ? '' : ' · Cuenta inactiva' }}</p>
+            <p>Sucursal: {{ person.branch_name }}{{ person.branch_active ? '' : ' (inactiva)' }}</p>
+            <p>Categoría: {{ person.category_name || 'Sin categoría' }}</p>
+            <p>Disponibilidad: {{ person.availability }} · Catálogo: {{ person.active ? 'Activo' : 'Inactivo' }}</p>
+          </div>
+          <div class="actions">
+            <button type="button" (click)="open(person)" [disabled]="loading()">Editar</button>
+            <button type="button" (click)="setActive(person)" [disabled]="loading()">{{ person.active ? 'Desactivar' : 'Reactivar' }}</button>
+            <button type="button" (click)="remove(person)" [disabled]="loading()">Eliminar definitivamente</button>
+          </div>
+        </article>
+      } @empty {
+        @if (!loading() && !error()) {
+          <p>{{ search().trim() ? 'No se encontró personal para esta búsqueda.' : 'No hay personal registrado.' }}</p>
+        }
+      }
+    </div>
+  }
+</section>

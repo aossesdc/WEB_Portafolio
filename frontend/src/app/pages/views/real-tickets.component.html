@@ -1,0 +1,239 @@
+@if (error()) { <p class="feedback error" role="alert">{{ error() }}</p> }
+@if (notice()) { <p class="feedback" role="status">{{ notice() }}</p> }
+@if (notificationWarning()) { <p class="feedback error" role="alert">{{ notificationWarning() }}</p> }
+@if (view() === 'new') {
+  @if (area() === 'executive') {
+  <section class="panel">
+    <h2>Crear ticket</h2>
+    <p>Selecciona un cliente registrado. El código y las fechas se generan automáticamente.</p>
+    @if (executiveOptionsLoading()) { <p role="status">Cargando opciones...</p> }
+    @else if (executiveOptionsError()) {
+      <p class="error" role="alert">{{ executiveOptionsError() }}</p>
+      <button type="button" class="button button-quiet" (click)="loadExecutiveOptions()">Reintentar</button>
+    } @else if (!clients().length) { <p>No hay clientes activos disponibles.</p> }
+    @if (duplicateClientEmails()) {
+      <p class="error" role="alert">Hay correos repetidos entre clientes activos. No se muestran hasta que un administrador corrija las cuentas.</p>
+    }
+    <form class="ticket-form" #executiveForm="ngForm" (ngSubmit)="createExecutive()">
+      <label>Título<input name="title" [(ngModel)]="title" maxlength="200" required /></label>
+      <label>Descripción<textarea name="description" [(ngModel)]="description" rows="5" required></textarea></label>
+      <div class="client-picker">
+        <label for="client-email">Correo del cliente</label>
+        <div class="client-search">
+          <input #clientInput id="client-email" name="client" type="email" [ngModel]="clientEmail" (ngModelChange)="updateClientEmail($event)"
+            placeholder="Busca o selecciona un correo" autocomplete="off" required role="combobox"
+            aria-autocomplete="list" aria-controls="executive-client-emails" [attr.aria-expanded]="clientListOpen()"
+            [attr.aria-activedescendant]="clientListOpen() && activeClientIndex() >= 0 ? 'client-option-' + filteredClients()[activeClientIndex()].id : null"
+            (focus)="clientListOpen.set(true)" (blur)="closeClientList()" (keydown)="clientListKeydown($event)" />
+          <button type="button" class="client-list-toggle" aria-label="Mostrar clientes" [attr.aria-expanded]="clientListOpen()"
+            aria-controls="executive-client-emails" tabindex="-1" (mousedown)="$event.preventDefault()"
+            (click)="toggleClientList(clientInput)">
+            <span aria-hidden="true">▾</span>
+          </button>
+        </div>
+        @if (clientListOpen()) {
+          <div class="client-results">
+            <div class="client-results-heading">Clientes disponibles <span>{{ filteredClients().length }}</span></div>
+            <ul id="executive-client-emails" role="listbox" aria-label="Correos de clientes">
+              @for (client of filteredClients(); track client.id; let i = $index) {
+                <li role="option" [id]="'client-option-' + client.id" [attr.aria-selected]="activeClientIndex() === i"
+                  [class.client-active]="activeClientIndex() === i" (mousedown)="$event.preventDefault()" (click)="chooseClient(client)">
+                  <span class="client-avatar" aria-hidden="true">{{ client.name.charAt(0).toUpperCase() }}</span>
+                  <span class="client-details"><strong>{{ client.email }}</strong><span>{{ client.name }}</span></span>
+                </li>
+              }
+            </ul>
+            @if (!filteredClients().length) { <p class="client-empty">No se encontraron clientes con ese correo.</p> }
+          </div>
+        }
+      </div>
+      <label>Categoría
+        <select name="category" [(ngModel)]="categoryId">
+          <option [ngValue]="null">Sin categoría</option>
+          @for (category of categories(); track category.id) { <option [ngValue]="category.id">{{ category.name }}</option> }
+        </select>
+      </label>
+      <label>Estado
+        <select name="status" [(ngModel)]="newStatus">
+          <option [ngValue]="null">Sin asignar</option>
+          <option value="Abierto">Abierto</option><option value="Cerrado">Cerrado</option>
+        </select>
+      </label>
+      <label>Prioridad
+        <select name="priority" [(ngModel)]="newPriority">
+          <option [ngValue]="null">Sin asignar</option>
+          <option value="Baja">Baja</option><option value="Media">Media</option><option value="Alta">Alta</option><option value="Crítica">Crítica</option>
+        </select>
+      </label>
+      <label>Riesgo
+        <select name="risk" [(ngModel)]="newRisk">
+          <option [ngValue]="null">Sin evaluar</option>
+          <option value="Bajo">Bajo</option><option value="Medio">Medio</option><option value="Alto">Alto</option>
+        </select>
+      </label>
+      <p>El riesgo asignado no podrá modificarse. Si no tiene riesgo o estado, el ticket quedará pendiente en Tickets.</p>
+      <label>Personal de soporte
+        <select name="person" [(ngModel)]="newPersonId">
+          <option [ngValue]="null">Sin asignar</option>
+          @for (person of personnel(); track person.id) {
+            <option [ngValue]="person.id">{{ person.name }} · {{ person.branch_name }} · {{ person.availability }}{{ person.user_active ? '' : ' (cuenta inactiva)' }}</option>
+          }
+        </select>
+      </label>
+      <button type="submit" class="button button-primary" [disabled]="saving() || executiveOptionsLoading() || !!executiveOptionsError() || executiveForm.invalid">Crear ticket</button>
+    </form>
+  </section>
+  } @else {
+  <section class="panel">
+    <h2>Crear ticket</h2>
+    <p>Describe el problema y selecciona una categoría de equipos activa.</p>
+    <form class="ticket-form" #ticketForm="ngForm" (ngSubmit)="create()">
+      <label>Título<input name="title" [(ngModel)]="title" maxlength="200" required /></label>
+      <label>Descripción<textarea name="description" [(ngModel)]="description" rows="5" required></textarea></label>
+      <label>Categoría
+        <select name="category" [(ngModel)]="categoryId" required>
+          <option [ngValue]="null">Selecciona una categoría</option>
+          @for (category of categories(); track category.id) { <option [ngValue]="category.id">{{ category.name }}</option> }
+        </select>
+      </label>
+      @if (categoriesLoading()) { <p role="status">Cargando categorías...</p> }
+      @else if (categoryError()) { <p class="error" role="alert">{{ categoryError() }} Vuelve a abrir Crear ticket para intentar nuevamente.</p> }
+      @else if (!categories().length) { <p>No hay categorías activas disponibles para crear el ticket.</p> }
+      <button type="submit" class="button button-primary" [disabled]="saving() || categoriesLoading() || !!categoryError() || ticketForm.invalid">Crear ticket</button>
+    </form>
+  </section>
+  }
+} @else {
+  @if (view() === 'overview') {
+    <div class="overview-heading">
+      <div><h2>Vista general</h2><p>Consulta los tickets registrados.</p></div>
+      @if (area() !== 'client') {
+        <div class="overview-exports">
+          <button type="button" class="button export-csv" (click)="exportCsv()" [disabled]="loading() || !loaded()">Exportar CSV (Excel)</button>
+          <button type="button" class="button export-pdf" (click)="exportPdf()" [disabled]="loading() || !loaded() || saving()">Exportar PDF</button>
+        </div>
+      }
+    </div>
+    @if (loaded()) {
+    <div class="stat-grid">
+      <article><span>Total tickets</span><strong>{{ stats().total }}</strong></article>
+      <article><span>Abiertos</span><strong>{{ stats().open }}</strong></article>
+      <article><span>Cerrados</span><strong>{{ stats().closed }}</strong></article>
+    </div>
+    }
+    @if ((area() === 'executive' || area() === 'support' || area() === 'admin') && loaded()) {
+      <section class="panel risk-overview" aria-labelledby="real-risk-heading">
+        <h2 id="real-risk-heading">Semáforo de riesgos</h2>
+        <p>{{ area() === 'support' ? 'Distribución de tus tickets asignados.' : area() === 'admin' ? 'Distribución de todos los tickets visibles, incluidos los pendientes.' : 'Tickets con riesgo y estado asignados. Los pendientes se gestionan en Tickets.' }}</p>
+        <div class="risk-grid">
+          <div class="risk-level risk-low"><span class="risk-light" aria-hidden="true"></span><span>Bajo</span><strong>{{ riskCounts().low }}</strong><span>tickets</span></div>
+          <div class="risk-level risk-medium"><span class="risk-light" aria-hidden="true"></span><span>Medio</span><strong>{{ riskCounts().medium }}</strong><span>tickets</span></div>
+          <div class="risk-level risk-high"><span class="risk-light" aria-hidden="true"></span><span>Alto</span><strong>{{ riskCounts().high }}</strong><span>tickets</span></div>
+          @if (area() === 'support' || area() === 'admin') {
+            <div class="risk-level"><span class="risk-light" aria-hidden="true"></span><span>Sin evaluar</span><strong>{{ riskCounts().unevaluated }}</strong><span>tickets</span></div>
+          }
+        </div>
+        <p>{{ pendingCount() }} ticket(s) pendiente(s) de riesgo o estado.</p>
+      </section>
+    }
+  }
+  <section class="panel">
+    <div class="heading"><h2>{{ area() === 'client' ? 'Mis tickets' : 'Tickets' }}</h2>
+      <button type="button" class="button button-quiet" (click)="load()" [disabled]="loading()">Actualizar lista</button></div>
+    <div class="filters">
+      <label>Buscar<input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Código, título o cliente" /></label>
+      <label>Estado<select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <option value="">Todos</option><option value="Abierto">Abierto</option><option value="Cerrado">Cerrado</option>
+      </select></label>
+    </div>
+    @if (loading()) { <p role="status">Cargando tickets...</p> }
+    @else if (!visibleTickets().length && !error()) { <p>No hay tickets que coincidan.</p> }
+    @else if (visibleTickets().length) {
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Código</th><th>Título</th><th>Categoría</th>
+            @if (area() !== 'client') { <th>Cliente</th><th>Prioridad</th><th>Personal asignado</th> }
+            <th>Estado</th>@if (view() === 'overview' && area() !== 'client') { <th>Riesgo</th> }
+            @if (view() === 'tickets' && (area() === 'executive' || area() === 'support')) { <th>Acciones</th> }
+          </tr></thead>
+          <tbody>
+            @for (ticket of visibleTickets(); track ticket.id) {
+              <tr><td>{{ ticket.code || '#' + ticket.id }}</td><td>{{ ticket.title }}
+                <details><summary>Ver descripción</summary><p class="description">{{ ticket.description }}</p>
+                  @if (ticket.resolution) { <p><strong>Solución:</strong></p><p class="description">{{ ticket.resolution }}</p> }
+                </details></td>
+                <td>{{ ticket.category_name ?? 'Sin categoría' }}</td>
+                @if (area() !== 'client') {
+                  <td>{{ ticket.client_name }}<br />{{ ticket.client_email }}</td><td>{{ ticket.priority ?? 'Sin asignar' }}</td>
+                  <td>{{ ticket.support_person_name || 'Sin asignar' }}</td>
+                }
+                <td>{{ ticket.status ?? 'Sin asignar' }}</td>
+                @if (view() === 'overview' && area() !== 'client') {
+                  <td><span class="risk-indicator" [class.risk-low]="ticket.risk === 'Bajo'"
+                    [class.risk-medium]="ticket.risk === 'Medio'" [class.risk-high]="ticket.risk === 'Alto'">
+                    <span class="risk-light" aria-hidden="true"></span>{{ ticket.risk ?? 'Sin evaluar' }}
+                  </span></td>
+                }
+                @if (view() === 'tickets' && (area() === 'executive' || area() === 'support')) {
+                  <td>
+                    @if (area() === 'support' && ticket.status === 'Cerrado') {
+                      <span>Ticket cerrado</span>
+                    } @else {
+                      <button type="button" class="button button-quiet" (click)="openEdit(ticket)" [disabled]="saving()">Editar</button>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}
+@if (view() === 'tickets' && (area() === 'executive' || area() === 'support')) {
+@if (editing(); as ticket) {
+  <section class="panel">
+    <h2>Editar {{ ticket.code || '#' + ticket.id }}</h2>
+    <form class="ticket-form" (ngSubmit)="saveEdit()">
+      <label>Estado<select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)" name="status">
+        @if (ticket.status === null) { <option [ngValue]="null">Sin asignar</option> }
+        <option value="Abierto" [disabled]="area() === 'support' && ticket.status === 'Cerrado'">Abierto</option><option value="Cerrado">Cerrado</option>
+      </select></label>
+      @if (area() === 'support') {
+        @if (ticket.status === 'Cerrado') { <p>Un ticket cerrado no puede editarse desde soporte; el ejecutivo puede reabrirlo.</p> }
+        <label>Descripción de la solución
+          <textarea name="resolution" [ngModel]="selectedResolution()" (ngModelChange)="selectedResolution.set($event)"
+            maxlength="1000" rows="4" [readonly]="ticket.status === 'Cerrado'" [required]="selectedStatus() === 'Cerrado'"></textarea>
+        </label>
+        <p>La solución es obligatoria para cerrar el ticket y será visible para el cliente y el ejecutivo.</p>
+      } @else {
+      @if (ticket.risk == null) {
+        <label>Riesgo<select [ngModel]="selectedRisk()" (ngModelChange)="selectedRisk.set($event)" name="risk">
+          <option [ngValue]="null">Sin evaluar</option>
+          <option value="Bajo">Bajo</option><option value="Medio">Medio</option><option value="Alto">Alto</option>
+        </select></label>
+        <p>Una vez guardado, el riesgo no se puede modificar.</p>
+      } @else {
+        <p>Riesgo asignado: <strong>{{ ticket.risk }}</strong> (no modificable).</p>
+      }
+      <label>Prioridad<select [ngModel]="selectedPriority()" (ngModelChange)="selectedPriority.set($event)" name="priority">
+        <option [ngValue]="null" [disabled]="ticket.priority != null">Sin asignar</option>
+        <option value="Baja">Baja</option><option value="Media">Media</option><option value="Alta">Alta</option><option value="Crítica">Crítica</option>
+      </select></label>
+      <label>Personal de soporte<select [ngModel]="selectedPerson()" (ngModelChange)="selectedPerson.set($event)" name="person">
+        <option [ngValue]="null">Sin asignar</option>
+        @if (ticket.support_person_id && !hasSelectedPerson()) {
+          <option [ngValue]="ticket.support_person_id">{{ ticket.support_person_name }} (registro inactivo)</option>
+        }
+        @for (person of personnel(); track person.id) {
+          <option [ngValue]="person.id">{{ person.name }} · {{ person.branch_name }} · {{ person.availability }}{{ person.user_active ? '' : ' (cuenta inactiva)' }}</option>
+        }
+      </select></label>
+      }
+      <div class="actions"><button type="submit" class="button button-primary" [disabled]="saving() || (area() === 'support' && ticket.status === 'Cerrado')">Guardar cambios</button>
+        <button type="button" class="button button-quiet" (click)="editing.set(null)" [disabled]="saving()">Cancelar</button></div>
+    </form>
+  </section>
+}
+}

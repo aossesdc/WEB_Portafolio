@@ -1,0 +1,72 @@
+<header class="welcome-header">
+  <a class="brand" routerLink="/"><span class="brand-mark">SLA</span><span>SLA Control</span></a>
+  <div class="welcome-header-actions">
+    <app-display-preferences />
+    <nav class="auth-links" aria-label="Acciones de acceso">
+      <a class="header-login" routerLink="/login/client">Iniciar sesión</a>
+      <a class="header-register" routerLink="/register">Crear cuenta</a>
+    </nav>
+  </div>
+</header>
+<main class="welcome-main">
+  <section class="welcome-hero" aria-labelledby="welcome-title">
+    <p class="eyebrow">Portal de soporte</p>
+    <h1 id="welcome-title">Tu soporte,<br /><em>en un solo lugar.</em></h1>
+    <p class="welcome-copy">
+      Registra tus solicitudes de soporte y consulta el estado de tus tickets desde tu cuenta.
+    </p>
+    <div class="hero-actions">
+      <a class="hero-primary" routerLink="/login/client">Ingresar como cliente <span aria-hidden="true">→</span></a>
+      <a class="hero-secondary" routerLink="/register">Crear cuenta</a>
+    </div>
+  </section>
+
+  <section class="welcome-features" aria-label="Cómo usar el portal">
+    <article>
+      <span class="feature-number">01</span>
+      <h2>Crea tu cuenta</h2>
+      <p>Regístrate como cliente para acceder al portal.</p>
+    </article>
+    <article>
+      <span class="feature-number">02</span>
+      <h2>Registra tu solicitud</h2>
+      <p>Describe el problema y selecciona la categoría correspondiente.</p>
+    </article>
+    <article>
+      <span class="feature-number">03</span>
+      <h2>Consulta tus tickets</h2>
+      <p>Revisa el estado de tus solicitudes y la solución registrada cuando esté disponible.</p>
+    </article>
+  </section>
+
+  <section class="account-section" aria-labelledby="account-title">
+    <div class="section-heading">
+      <p class="eyebrow">Acceso a la plataforma</p>
+      <h2 id="account-title">Elige tu portal</h2>
+      <p>Ingresa con la cuenta que corresponde a tu perfil.</p>
+    </div>
+    <div class="account-options">
+      <a class="account-card client-card" routerLink="/login/client">
+        <span class="account-icon" aria-hidden="true">C</span>
+        <span class="account-card-text"><strong>Clientes</strong><small>Accede a tus solicitudes y crea nuevos tickets.</small></span>
+        <span class="account-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="account-card admin-card" routerLink="/login/executive">
+        <span class="account-icon" aria-hidden="true">E</span>
+        <span class="account-card-text"><strong>Ejecutivo y soporte</strong><small>Ingresa con tu cuenta de personal.</small></span>
+        <span class="account-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="account-card administrator-card" routerLink="/login/admin">
+        <span class="account-icon" aria-hidden="true">A</span>
+        <span class="account-card-text"><strong>Administración</strong><small>Acceso para cuentas de administrador.</small></span>
+        <span class="account-arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+  <a class="help-primary-link welcome-help-link" routerLink="/help">
+    Visitar el centro de ayuda <span aria-hidden="true">→</span>
+  </a>
+</main>
+<footer class="welcome-footer">
+  <span>SLA Control</span><span>Portal de soporte y seguimiento de tickets</span>
+</footer>

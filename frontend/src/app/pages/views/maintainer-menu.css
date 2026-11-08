@@ -1,0 +1,60 @@
+.maintainer-menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(160px, (100% - 48px) / 4)), 1fr));
+  gap: 16px;
+}
+
+.maintainer-tile {
+  display: flex;
+  min-height: 210px;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.maintainer-tile:hover {
+  border-color: var(--accent);
+}
+
+.maintainer-tile:focus-visible {
+  outline: 3px solid var(--accent-dark);
+  outline-offset: 3px;
+}
+
+.maintainer-tile-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  font-size: 1.4rem;
+}
+
+.maintainer-tile strong {
+  font-size: 1.1rem;
+}
+
+.maintainer-tile > span:not(.maintainer-tile-icon) {
+  color: var(--muted);
+}
+
+.maintainer-tile .maintainer-tile-link {
+  margin-top: auto;
+  color: var(--accent-dark) !important;
+  font-weight: 700;
+}
+
+.maintainer-back {
+  margin-bottom: 16px;
+}

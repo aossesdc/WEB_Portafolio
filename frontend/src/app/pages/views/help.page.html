@@ -1,0 +1,68 @@
+<div class="help-page">
+  <header class="welcome-header">
+    <a class="brand" routerLink="/"><span class="brand-mark">SLA</span><span>SLA Control</span></a>
+    <div class="welcome-header-actions">
+      <app-display-preferences /><a class="header-login" [routerLink]="homeRoute">Volver</a>
+    </div>
+  </header>
+  <main class="welcome-main help-main">
+    <section class="help-section">
+      <div class="help-intro">
+        <p class="eyebrow">Centro de ayuda</p>
+        <h1>¿Cómo podemos ayudarte?</h1>
+        <p>
+          Encuentra respuestas sobre el registro, el inicio de sesión y las funciones disponibles.
+        </p>
+        <a class="help-primary-link" routerLink="/login/client"
+          >Ir al portal de clientes <span aria-hidden="true">→</span></a
+        >
+      </div>
+      <div class="help-content">
+        <nav class="help-quick-links" aria-label="Accesos rápidos">
+          <a routerLink="/login/client"
+            ><span class="help-link-icon">C</span
+            ><span
+              ><strong>Portal de clientes</strong><small>Inicia sesión o crea tu cuenta</small></span
+            ><span class="help-link-arrow">→</span></a
+          >
+          <a routerLink="/login/executive"
+            ><span class="help-link-icon">E</span
+            ><span
+              ><strong>Portal ejecutivo</strong><small>Accede con tu cuenta de personal</small></span
+            ><span class="help-link-arrow">→</span></a
+          >
+          <a routerLink="/register"
+            ><span class="help-link-icon">+</span
+            ><span><strong>Crear una cuenta</strong><small>Regístrate como cliente</small></span
+            ><span class="help-link-arrow">→</span></a
+          >
+        </nav>
+        <section class="help-faq" aria-label="Preguntas frecuentes">
+          <details>
+            <summary>¿Qué hace el registro?</summary>
+            <p>
+              Crea una cuenta de cliente para registrar solicitudes y consultar tus tickets.
+            </p>
+          </details>
+          <details>
+            <summary>¿Qué ocurre al iniciar sesión?</summary>
+            <p>
+              El servidor valida tus datos y abre una sesión que vence después de ocho horas.
+            </p>
+          </details>
+          <details>
+            <summary>¿Cómo consulto mis tickets?</summary>
+            <p>
+              Inicia sesión como cliente y abre Resumen para consultar tus solicitudes, su estado
+              y la solución registrada cuando esté disponible. También puedes crear un ticket desde
+              la opción Crear ticket.
+            </p>
+          </details>
+        </section>
+      </div>
+    </section>
+  </main>
+  <footer class="welcome-footer">
+    <span>SLA Control</span><span>Centro de ayuda</span><span>Sesión protegida</span>
+  </footer>
+</div>

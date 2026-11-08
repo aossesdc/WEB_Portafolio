@@ -1,0 +1,62 @@
+<section class="accounts-panel">
+  @if (formOpen()) {
+    <div class="form-wrap">
+      <p class="eyebrow">Administración de servicios</p>
+      <h2>{{ editing() ? 'Editar tipo de servicio' : 'Registrar tipo de servicio' }}</h2>
+      <p class="subtitle">Completa los datos del tipo de servicio.</p>
+      <form #form="ngForm" (ngSubmit)="save(form)" class="account-form">
+        <label for="service-name">Nombre del servicio</label>
+        <input id="service-name" name="name" [(ngModel)]="name" required maxlength="100" />
+        <label for="service-description">Descripción del servicio</label>
+        <textarea id="service-description" name="description" rows="4" [(ngModel)]="description" required></textarea>
+        <label for="service-priority">Prioridad base</label>
+        <select id="service-priority" name="priority" [(ngModel)]="priority" required>
+          <option value="Baja">Baja</option>
+          <option value="Media">Media</option>
+          <option value="Alta">Alta</option>
+          <option value="Crítica">Crítica</option>
+        </select>
+        @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+        <div class="form-actions">
+          <button class="primary" type="submit" [disabled]="loading() || form.invalid">{{ editing() ? 'Guardar cambios' : 'Registrar tipo de servicio' }}</button>
+          <button type="button" (click)="cancel()" [disabled]="loading()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  } @else {
+    <div class="heading">
+      <div><h2>Gestión de tipos de servicio</h2><p>Administra los tipos de servicio registrados.</p></div>
+      <div class="actions">
+        <button type="button" (click)="load()" [disabled]="loading()">Actualizar lista</button>
+        <button class="primary" type="button" (click)="open(null)" [disabled]="loading()">Registrar tipo de servicio</button>
+      </div>
+    </div>
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    @if (notice()) { <p class="notice" role="status">{{ notice() }}</p> }
+    <div class="list">
+      <h3>Tipos de servicio registrados</h3>
+      <label class="search" for="service-search"><span>Buscar tipos de servicio</span>
+        <input id="service-search" type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Nombre, descripción, prioridad o estado" />
+      </label>
+      @if (loading()) { <p role="status">Cargando...</p> }
+      @for (service of filteredServiceTypes(); track service.id) {
+        <article class="account-card">
+          <div>
+            <strong>{{ service.name }}</strong>
+            <p class="contract-description">{{ service.description }}</p>
+            <p>Prioridad: {{ service.priority }} · {{ service.active ? 'Activo' : 'Inactivo' }}</p>
+          </div>
+          <div class="actions">
+            <button type="button" (click)="open(service)" [disabled]="loading()">Editar</button>
+            <button type="button" (click)="setActive(service)" [disabled]="loading()">{{ service.active ? 'Desactivar' : 'Reactivar' }}</button>
+            <button type="button" (click)="remove(service)" [disabled]="loading()">Eliminar definitivamente</button>
+          </div>
+        </article>
+      } @empty {
+        @if (!loading() && !error()) {
+          <p>{{ search().trim() ? 'No se encontraron tipos de servicio para esta búsqueda.' : 'No hay tipos de servicio registrados.' }}</p>
+        }
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,91 @@
+<section class="accounts-panel">
+  @if (formOpen()) {
+    <div class="form-wrap">
+      <p class="eyebrow">{{ editing() ? 'Administración de cuentas' : 'Crear cuenta' }}</p>
+      <h2>{{ editing() ? 'Editar cuenta' : 'Crear una cuenta de personal' }}</h2>
+      <p class="subtitle">
+        {{ editing() ? 'Actualiza los datos de la cuenta seleccionada.' : 'Completa los datos y selecciona el rol de la cuenta.' }}
+      </p>
+      <form #form="ngForm" (ngSubmit)="save(form)" class="account-form">
+        @if (editing()) {
+          <p>Rol: <strong>{{ roleName(editing()!.role) }}</strong> (no modificable)</p>
+        } @else {
+          <label for="account-role">Rol</label>
+          <select id="account-role" name="role" [(ngModel)]="role">
+            <option value="ejecutivo">Ejecutivo</option>
+            <option value="soporte">Soporte</option>
+            <option value="admin">Administrador</option>
+          </select>
+        }
+        @if (editing()?.role === 'client') {
+          <label for="account-first-name">Nombre</label>
+          <input id="account-first-name" name="firstName" [(ngModel)]="firstName" required maxlength="100" autocomplete="given-name" placeholder="Nombre" />
+          <label for="account-last-name">Apellido</label>
+          <input id="account-last-name" name="lastName" [(ngModel)]="lastName" required maxlength="100" autocomplete="family-name" placeholder="Apellido" />
+          <label for="account-phone">Teléfono (opcional)</label>
+          <input id="account-phone" name="phone" [(ngModel)]="phone" maxlength="20" autocomplete="tel" placeholder="Teléfono" />
+        } @else {
+          <label for="account-full-name">Nombre completo</label>
+          <input id="account-full-name" name="fullName" [(ngModel)]="fullName" required maxlength="200" autocomplete="name" placeholder="Nombre completo" />
+          <label for="account-employee-code">Código de empleado (opcional)</label>
+          <input id="account-employee-code" name="employeeCode" [(ngModel)]="employeeCode" maxlength="50" placeholder="Código de empleado" />
+        }
+        <label for="account-email">Correo electrónico</label>
+        <input id="account-email" name="email" type="email" [(ngModel)]="email" required email maxlength="254" autocomplete="email" placeholder="usuario@ejemplo.com" />
+        <label for="account-password">{{ editing() ? 'Nueva contraseña (opcional)' : 'Contraseña' }}</label>
+        <input id="account-password" name="password" type="password" [(ngModel)]="password" [required]="!editing()" minlength="8" maxlength="128" autocomplete="new-password" placeholder="Ingresa la contraseña" />
+        @if (!editing()) {
+          <label for="account-confirm-password">Confirmar contraseña</label>
+          <input id="account-confirm-password" name="confirmPassword" type="password" [(ngModel)]="confirmPassword" required maxlength="128" autocomplete="new-password" placeholder="Repite la contraseña" />
+        }
+        @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+        <div class="form-actions">
+          <button class="primary" type="submit" [disabled]="loading() || form.invalid">{{ editing() ? 'Guardar cambios' : 'Crear cuenta' }}</button>
+          <button type="button" (click)="cancel()" [disabled]="loading()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  } @else {
+    <div class="heading">
+      <div>
+        <h2>Gestión de usuarios/cuentas</h2>
+        <p>Las cuentas se guardan en PostgreSQL. Los clientes se registran desde el portal.</p>
+      </div>
+      <div class="actions">
+        <button type="button" (click)="load()" [disabled]="loading()">Actualizar lista</button>
+        <button class="primary" type="button" (click)="create()" [disabled]="loading()">Crear cuenta</button>
+      </div>
+    </div>
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    @if (notice()) { <p class="notice" role="status">{{ notice() }}</p> }
+    <div class="list">
+      <h3>Cuentas registradas</h3>
+      <label class="search" for="account-search">
+        <span>Buscar cuentas</span>
+        <input id="account-search" type="search" [ngModel]="search()" (ngModelChange)="search.set($event)"
+          placeholder="Nombre, correo, rol o código de empleado" />
+      </label>
+      @if (loading()) { <p role="status">Cargando...</p> }
+      @for (account of filteredAccounts(); track account.id) {
+        <article class="account-card">
+          <div>
+            <strong>{{ accountName(account) }}</strong>
+            <p>{{ account.email }}</p>
+            <p>{{ roleName(account.role) }} · {{ account.active ? 'Activa' : 'Desactivada' }}</p>
+          </div>
+          <div class="actions">
+            <button type="button" (click)="edit(account)" [disabled]="loading()">Editar</button>
+            <button type="button" (click)="setActive(account)"
+              [disabled]="loading() || account.id === currentUser()?.id">
+              {{ account.active ? 'Desactivar' : 'Reactivar' }}
+            </button>
+          </div>
+        </article>
+      } @empty {
+        @if (!loading() && !error()) {
+          <p>{{ search().trim() ? 'No se encontraron cuentas para esta búsqueda.' : 'No hay cuentas registradas.' }}</p>
+        }
+      }
+    </div>
+  }
+</section>

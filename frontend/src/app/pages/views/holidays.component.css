@@ -1,0 +1,10 @@
+.holiday-filters {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 480px);
+  gap: 16px;
+  margin: 20px 0;
+}
+
+@media (max-width: 560px) {
+  .holiday-filters { grid-template-columns: minmax(0, 1fr); }
+}

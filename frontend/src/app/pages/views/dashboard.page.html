@@ -1,0 +1,382 @@
+<div class="dashboard-shell">
+  <aside class="sidebar">
+    @if (isPreview) {
+      <a class="brand brand-with-mark" routerLink="/">
+        <span class="brand-mark">SLA</span><span>SLA Control</span>
+      </a>
+    } @else {
+      <button type="button" class="brand brand-with-mark dashboard-home-brand" (click)="selectView('overview')" aria-label="Ir al inicio de mi portal">
+        <span class="brand-mark">SLA</span><span>SLA Control</span>
+      </button>
+    }
+    <p class="sidebar-label">{{ areaLabels[area] }}</p>
+    @for (item of views; track item) {
+      <button type="button" class="nav-item" [class.status-activo]="view() === item" (click)="selectView(item)">
+        {{ viewLabels[item] }}
+      </button>
+    }
+    <div class="sidebar-bottom">
+      @if (isPreview) {
+        <p class="sidebar-label">Vista previa</p>
+        @for (item of areas; track item) {
+          <button type="button" class="nav-item" [class.status-activo]="item === area" (click)="goTo(item)">
+            {{ areaLabels[item] }}
+          </button>
+        }
+      } @else {
+        @if (user; as account) {
+          <section class="session-card" aria-label="Cuenta conectada">
+            <span class="session-card-label">Cuenta conectada</span>
+            <strong class="session-card-name">{{ account.name }}</strong>
+            <span class="session-card-email">{{ account.email }}</span>
+            <span class="session-card-role">{{ roleLabels[account.role] }}</span>
+          </section>
+        }
+        <button type="button" class="button button-quiet" (click)="logout()">Cerrar sesión</button>
+      }
+    </div>
+  </aside>
+
+  <main class="dashboard-content">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">{{ view() === 'maintainers' ? 'Módulos de administración' : (usesRealTickets || (!isPreview && area === 'admin')) ? 'Tickets registrados' : 'Tickets: datos de demostración' }}</p>
+        <h1>{{ viewLabels[view()] }}</h1>
+        <p class="muted">{{ displayName }}</p>
+      </div>
+      <div class="panel-actions">
+        <app-display-preferences />
+        @if (isPreview) {
+          <a class="button button-quiet" routerLink="/"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5M9 21v-7h6v7"/></svg>Inicio</a>
+        } @else {
+          <button type="button" class="button button-quiet" (click)="selectView('overview')"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5M9 21v-7h6v7"/></svg>Inicio</button>
+        }
+      </div>
+    </header>
+
+    @if (usesRealTickets || (!isPreview && area === 'admin' && view() === 'overview')) {
+      <app-real-tickets [area]="area" [view]="view()" (created)="selectView('overview')" />
+    } @else {
+    @switch (view()) {
+      @case ('overview') {
+        <div class="overview-heading">
+          <div>
+            <h2>Vista general</h2>
+            <p>Consulta el estado de los tickets de demostración.</p>
+          </div>
+          @if (area === 'admin' || area === 'executive') {
+            <div class="overview-exports" aria-label="Exportar resumen">
+              <button type="button" class="button export-csv" (click)="exportCsv()">Exportar CSV (Excel)</button>
+              <button type="button" class="button export-pdf" (click)="exportPdf()" [disabled]="exportingPdf()">
+                {{ exportingPdf() ? 'Generando PDF...' : 'Exportar PDF' }}
+              </button>
+            </div>
+          }
+        </div>
+        @if (exportError()) { <p class="overview-error" role="alert">{{ exportError() }}</p> }
+        @if (area !== 'client' && (search().trim() || statusFilter())) {
+          <div class="overview-filter">
+            <span>El resumen y las exportaciones usan los filtros de tickets actuales.</span>
+            <button type="button" class="button button-quiet" (click)="clearTicketFilters()">Quitar filtros</button>
+          </div>
+        }
+        <section class="stat-grid">
+          <article class="stat-card"><span>Total tickets</span><strong>{{ stats().total }}</strong></article>
+          <article class="stat-card"><span>Abiertos</span><strong>{{ stats().open }}</strong></article>
+          @if (area !== 'client') {
+            <article class="stat-card"><span>{{ area === 'executive' ? 'Riesgo alto' : 'Críticos' }}</span><strong>{{ stats().critical }}</strong></article>
+          }
+          <article class="stat-card"><span>Cerrados</span><strong>{{ stats().closed }}</strong></article>
+        </section>
+        @if (area === 'executive') {
+          <section class="panel risk-overview" aria-labelledby="risk-heading">
+            <div class="overview-panel-heading">
+              <div>
+                <h2 id="risk-heading">Semáforo de riesgos</h2>
+                <p>Distribución de los tickets visibles. Crítico se muestra como Alto en este resumen.</p>
+              </div>
+            </div>
+            <div class="risk-grid">
+              <div class="risk-level risk-low"><span class="risk-light" aria-hidden="true"></span><span>Bajo</span><strong>{{ riskCounts().low }}</strong><span>tickets</span></div>
+              <div class="risk-level risk-medium"><span class="risk-light" aria-hidden="true"></span><span>Medio</span><strong>{{ riskCounts().medium }}</strong><span>tickets</span></div>
+              <div class="risk-level risk-high"><span class="risk-light" aria-hidden="true"></span><span>Alto</span><strong>{{ riskCounts().high }}</strong><span>tickets</span></div>
+              <div class="risk-level risk-unevaluated"><span class="risk-light" aria-hidden="true"></span><span>Sin evaluar</span><strong>{{ riskCounts().unevaluated }}</strong><span>tickets</span></div>
+            </div>
+          </section>
+        }
+        <section class="panel">
+          <div class="overview-panel-heading">
+            <div>
+              <h2>{{ area === 'client' ? 'Mis tickets' : 'Últimos tickets' }}</h2>
+              <p>{{ area === 'client' ? 'Busca tus tickets y consulta su estado.' : 'Hasta cuatro de los tickets visibles.' }}</p>
+            </div>
+            @if (area !== 'admin' && area !== 'client') {
+              <button type="button" class="button button-quiet" (click)="selectView('tickets')">Ver todos</button>
+            }
+          </div>
+          @if (area === 'client') {
+            <ng-container [ngTemplateOutlet]="ticketFilters" />
+            @if (message()) { <p class="form-message success" role="status">{{ message() }}</p> }
+          }
+          @if (visibleTickets().length === 0) {
+            <p class="empty-state">No hay tickets que coincidan.</p>
+          } @else {
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Código</th><th>Título</th><th>Estado</th>@if (area !== 'client') { <th>Riesgo</th> }</tr></thead>
+              <tbody>
+                @for (t of area === 'client' ? visibleTickets() : visibleTickets().slice(0, 4); track t.id) {
+                  <tr>
+                    <td>{{ t.code }}</td>
+                    <td>
+                      {{ t.title }}
+                      @if (area === 'client' && t.description) {
+                        <details class="ticket-description"><summary>Ver descripción</summary><p>{{ t.description }}</p></details>
+                      }
+                    </td>
+                    <td><span class="status-pill">{{ t.status }}</span></td>
+                    @if (area !== 'client') {
+                      <td>
+                        @if (area === 'executive') {
+                          <span class="risk-indicator" [class.risk-low]="t.risk === 'Bajo'" [class.risk-medium]="t.risk === 'Medio'"
+                            [class.risk-high]="t.risk === 'Crítico'" [class.risk-unevaluated]="t.risk === 'Sin evaluar'">
+                            <span class="risk-light" aria-hidden="true"></span>{{ executiveRisk(t.risk) }}
+                          </span>
+                        } @else {
+                          <span class="risk-pill">{{ t.risk }}</span>
+                        }
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          }
+        </section>
+      }
+
+      @case ('tickets') {
+        <ng-container [ngTemplateOutlet]="ticketsPanel" />
+      }
+
+      @case ('new') {
+        @if (area === 'executive') {
+          <section class="panel">
+            <h2>Crear ticket</h2>
+            <p>Para registrar un ticket real y seleccionar un cliente, inicia sesión como ejecutivo.</p>
+            <a class="button button-primary" routerLink="/login/executive">Iniciar sesión</a>
+          </section>
+        } @else {
+        <section class="panel form-panel">
+          <div class="ticket-form-heading">
+            <h2>Crear ticket</h2>
+            <p>Describe el problema para registrar una solicitud de demostración.</p>
+          </div>
+          <form class="maintainer-form ticket-form" (submit)="createTicket($event, title.value, description.value, category.value)">
+            <label class="field-wide"><span>Título</span><input #title name="title" type="text" maxlength="120" placeholder="Ej. No puedo acceder al sistema" required /></label>
+            <label class="field-wide"><span>Descripción</span><textarea #description name="description" rows="5" placeholder="Describe el problema y los detalles relevantes" required></textarea></label>
+            <label class="field-wide"><span>Categoría</span>
+              <select #category name="category" required>
+                <option value="" selected disabled>Selecciona una categoría</option>
+                <option value="Hardware">Hardware (físico)</option>
+                <option value="Software">Software (aplicaciones)</option>
+              </select>
+            </label>
+            @if (ticketFormError()) { <p class="form-message error field-wide" role="alert">{{ ticketFormError() }}</p> }
+            <div class="form-actions"><button class="button button-primary" type="submit">Crear ticket</button></div>
+          </form>
+        </section>
+        }
+      }
+
+      @case ('maintainers') {
+        @if (!maintainer()) {
+          <section aria-labelledby="maintainer-heading">
+            <h2 id="maintainer-heading">Módulos disponibles</h2>
+            <p class="muted">Selecciona un módulo para administrarlo.</p>
+            <div class="maintainer-menu">
+              <button type="button" class="maintainer-tile" (click)="maintainer.set('accounts')">
+                <span class="maintainer-tile-icon" aria-hidden="true">👤</span>
+                <strong>Gestión de usuarios/cuentas</strong>
+                <span>Administra las cuentas de clientes y personal.</span>
+                <span class="maintainer-tile-link" aria-hidden="true">Abrir módulo →</span>
+              </button>
+              <button type="button" class="maintainer-tile" (click)="maintainer.set('holidays')">
+                <span class="maintainer-tile-icon" aria-hidden="true">📅</span>
+                <strong>Feriados</strong>
+                <span>Consulta los feriados que caen en días laborales.</span>
+                <span class="maintainer-tile-link" aria-hidden="true">Abrir módulo →</span>
+              </button>
+              <button type="button" class="maintainer-tile" (click)="maintainer.set('branches')">
+                <span class="maintainer-tile-icon" aria-hidden="true">🏢</span>
+                <strong>Gestión de sucursales</strong>
+                <span>Administra las sucursales registradas.</span>
+                <span class="maintainer-tile-link" aria-hidden="true">Abrir módulo →</span>
+              </button>
+              <button type="button" class="maintainer-tile" (click)="maintainer.set('companies')">
+                <span class="maintainer-tile-icon" aria-hidden="true">🏢</span>
+                <strong>Gestión de cuentas empresariales</strong>
+                <span>Administra las empresas registradas.</span>
+                <span class="maintainer-tile-link" aria-hidden="true">Abrir módulo →</span>
+              </button>
+              <button type="button" class="maintainer-tile" (click)="maintainer.set('contracts')">
+                <span class="maintainer-tile-icon" aria-hidden="true">📄</span>
+                <strong>Gestión de contratos</strong>
+                <span>Administra los contratos de las empresas.</span>
+                <span class="maintainer-tile-link" aria-hidden="true">Abrir módulo →</span>
+              </button>
+              <button type="button" class="maintainer-tile" (click)="maintainer.set('service-types')">
+                <span class="maintainer-tile-icon" aria-hidden="true">🛠️</span>
+                <strong>Gestión de tipos de servicio</strong>
+                <span>Administra los tipos de servicio y sus prioridades.</span>
+                <span class="maintainer-tile-link" aria-hidden="true">Abrir módulo →</span>
+              </button>
+              <button type="button" class="maintainer-tile" (click)="maintainer.set('hardware-categories')">
+                <span class="maintainer-tile-icon" aria-hidden="true">💻</span>
+                <strong>Gestión de categorías de equipos</strong>
+                <span>Administra las familias de equipos sujetos a soporte.</span>
+                <span class="maintainer-tile-link" aria-hidden="true">Abrir módulo →</span>
+              </button>
+              <button type="button" class="maintainer-tile" (click)="maintainer.set('support-personnel')">
+                <span class="maintainer-tile-icon" aria-hidden="true">👷</span>
+                <strong>Gestión de personal operativo</strong>
+                <span>Administra el catálogo del personal y su disponibilidad.</span>
+                <span class="maintainer-tile-link" aria-hidden="true">Abrir módulo →</span>
+              </button>
+            </div>
+          </section>
+        } @else {
+          <button type="button" class="button button-quiet maintainer-back" (click)="maintainer.set(null)">
+            ← Volver a módulos
+          </button>
+          @if (maintainer() === 'holidays') {
+            <app-holidays [preview]="isPreview" />
+          } @else if (maintainer() === 'support-personnel') {
+            @if (isPreview) {
+              <section class="panel">
+                <h2>Gestión de personal operativo</h2>
+                <p>Para gestionar personal real, inicia sesión como administrador.</p>
+                <a class="button button-primary" routerLink="/login/admin">Iniciar sesión</a>
+              </section>
+            } @else {
+              <app-support-personnel />
+            }
+          } @else if (maintainer() === 'hardware-categories') {
+            @if (isPreview) {
+              <section class="panel">
+                <h2>Gestión de categorías de equipos</h2>
+                <p>Para gestionar categorías reales, inicia sesión como administrador.</p>
+                <a class="button button-primary" routerLink="/login/admin">Iniciar sesión</a>
+              </section>
+            } @else {
+              <app-hardware-categories />
+            }
+          } @else if (maintainer() === 'service-types') {
+            @if (isPreview) {
+              <section class="panel">
+                <h2>Gestión de tipos de servicio</h2>
+                <p>Para gestionar tipos de servicio reales, inicia sesión como administrador.</p>
+                <a class="button button-primary" routerLink="/login/admin">Iniciar sesión</a>
+              </section>
+            } @else {
+              <app-service-types />
+            }
+          } @else if (maintainer() === 'contracts') {
+            @if (isPreview) {
+              <section class="panel">
+                <h2>Gestión de contratos</h2>
+                <p>Para gestionar contratos reales, inicia sesión como administrador.</p>
+                <a class="button button-primary" routerLink="/login/admin">Iniciar sesión</a>
+              </section>
+            } @else {
+              <app-contracts />
+            }
+          } @else if (maintainer() === 'companies') {
+            @if (isPreview) {
+              <section class="panel">
+                <h2>Gestión de cuentas empresariales</h2>
+                <p>Para gestionar empresas reales, inicia sesión como administrador.</p>
+                <a class="button button-primary" routerLink="/login/admin">Iniciar sesión</a>
+              </section>
+            } @else {
+              <app-companies />
+            }
+          } @else if (maintainer() === 'branches') {
+            @if (isPreview) {
+              <section class="panel">
+                <h2>Gestión de sucursales</h2>
+                <p>Para gestionar sucursales reales, inicia sesión como administrador.</p>
+                <a class="button button-primary" routerLink="/login/admin">Iniciar sesión</a>
+              </section>
+            } @else {
+              <app-branches />
+            }
+          } @else if (isPreview) {
+          <section class="panel">
+            <h2>Gestión de usuarios/cuentas</h2>
+            <p>Para gestionar cuentas reales, inicia sesión como administrador.</p>
+            <a class="button button-primary" routerLink="/login/admin">Iniciar sesión</a>
+          </section>
+          } @else {
+            <app-accounts />
+          }
+        }
+      }
+
+    }
+    }
+  </main>
+</div>
+
+<ng-template #ticketsPanel>
+        <section class="panel">
+          <ng-container [ngTemplateOutlet]="ticketFilters" />
+          @if (visibleTickets().length === 0) {
+            <p class="empty-state">No hay tickets que coincidan.</p>
+          } @else {
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Código</th><th>Título</th><th>Cliente</th><th>Categoría</th><th>Prioridad</th>@if (area !== 'executive') { <th>Riesgo</th><th>Vence</th> }<th>Estado</th></tr></thead>
+                <tbody>
+                  @for (t of visibleTickets(); track t.id) {
+                    <tr>
+                      <td>{{ t.code }}</td><td>{{ t.title }}</td><td>{{ t.client }}</td>
+                      <td>{{ t.category }}</td><td>{{ t.priority }}</td>
+                      @if (area !== 'executive') {
+                        <td><span class="risk-pill">{{ t.risk }}</span></td>
+                        <td>{{ t.dueIn }}</td>
+                      }
+                      <td>
+                        @if (area === 'client') {
+                          <span class="status-pill">{{ t.status }}</span>
+                        } @else {
+                          <select (change)="changeStatus(t.id, $event)">
+                            @for (s of statuses; track s) { <option [value]="s" [selected]="s === t.status">{{ s }}</option> }
+                          </select>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+</ng-template>
+
+<ng-template #ticketFilters>
+  <div class="filter-row">
+    <label class="search-field">
+      <span>Buscar</span>
+      <input type="search" placeholder="Código, título o cliente" [value]="search()" (input)="setText(search, $event)" />
+    </label>
+    <label>
+      <span>Estado</span>
+      <select [value]="statusFilter()" (change)="setText(statusFilter, $event)">
+        <option value="">Todos</option>
+        @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
+      </select>
+    </label>
+  </div>
+</ng-template>

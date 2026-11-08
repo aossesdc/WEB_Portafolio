@@ -1,0 +1,72 @@
+<section class="accounts-panel">
+  @if (formOpen()) {
+    <div class="form-wrap">
+      <p class="eyebrow">Administración de sucursales</p>
+      <h2>{{ editing() ? 'Editar sucursal' : 'Registrar sucursal' }}</h2>
+      <p class="subtitle">Completa los datos de la sucursal.</p>
+      <form #form="ngForm" (ngSubmit)="save(form)" class="account-form">
+        <label for="branch-name">Nombre</label>
+        <input id="branch-name" name="name" [(ngModel)]="name" required maxlength="150" placeholder="Nombre de la sucursal" />
+        <label for="branch-address">Dirección</label>
+        <input id="branch-address" name="address" [(ngModel)]="address" required maxlength="255" placeholder="Dirección" />
+        <label for="branch-region">Región</label>
+        <select id="branch-region" name="region" [ngModel]="region" (ngModelChange)="selectRegion($event)" required>
+          <option value="">Selecciona una región</option>
+          @if (legacyRegion) { <option [value]="region">{{ region }} (valor existente)</option> }
+          @for (item of regions; track item.number) { <option [value]="item.name">{{ item.name }}</option> }
+        </select>
+        <label for="branch-commune">Comuna</label>
+        <select id="branch-commune" name="commune" [(ngModel)]="commune" required [disabled]="!region">
+          <option value="">Selecciona una comuna</option>
+          @if (legacyCommune) { <option [value]="commune">{{ commune }} (valor existente)</option> }
+          @for (item of communes; track item) { <option [value]="item">{{ item }}</option> }
+        </select>
+        @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+        <div class="form-actions">
+          <button class="primary" type="submit" [disabled]="loading() || form.invalid">{{ editing() ? 'Guardar cambios' : 'Registrar sucursal' }}</button>
+          <button type="button" (click)="cancel()" [disabled]="loading()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  } @else {
+    <div class="heading">
+      <div>
+        <h2>Gestión de sucursales</h2>
+        <p>Administra las sucursales guardadas en PostgreSQL.</p>
+      </div>
+      <div class="actions">
+        <button type="button" (click)="load()" [disabled]="loading()">Actualizar lista</button>
+        <button class="primary" type="button" (click)="create()" [disabled]="loading()">Registrar sucursal</button>
+      </div>
+    </div>
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    @if (notice()) { <p class="notice" role="status">{{ notice() }}</p> }
+    <div class="list">
+      <h3>Sucursales registradas</h3>
+      <label class="search" for="branch-search">
+        <span>Buscar sucursales</span>
+        <input id="branch-search" type="search" [ngModel]="search()" (ngModelChange)="search.set($event)"
+          placeholder="Nombre, dirección, comuna o región" />
+      </label>
+      @if (loading()) { <p role="status">Cargando...</p> }
+      @for (branch of filteredBranches(); track branch.id) {
+        <article class="account-card">
+          <div>
+            <strong>{{ branch.name }}</strong>
+            <p>{{ branch.address }} · {{ branch.commune }}, {{ branch.region }}</p>
+            <p>{{ branch.active === null ? 'Sin estado' : branch.active ? 'Activa' : 'Desactivada' }}</p>
+          </div>
+          <div class="actions">
+            <button type="button" (click)="edit(branch)" [disabled]="loading()">Editar</button>
+            <button type="button" (click)="setActive(branch)" [disabled]="loading()">{{ branch.active ? 'Desactivar' : 'Reactivar' }}</button>
+            <button type="button" (click)="remove(branch)" [disabled]="loading()">Eliminar definitivamente</button>
+          </div>
+        </article>
+      } @empty {
+        @if (!loading() && !error()) {
+          <p>{{ search().trim() ? 'No se encontraron sucursales para esta búsqueda.' : 'No hay sucursales registradas.' }}</p>
+        }
+      }
+    </div>
+  }
+</section>

@@ -1,29 +1,19 @@
-# WEB_Portafolio
+# SLA Control
 
-## Base de datos y API local
+Portal de soporte para registrar y gestionar tickets. La interfaz utiliza Angular; la API utiliza Django REST Framework y PostgreSQL.
 
-El backend usa SQLite. La base `backend/data/sla-control.sqlite` se crea automáticamente al iniciar el servidor y conserva usuarios, sesiones y tickets entre reinicios. La tabla de tickets inicia vacía y solo contiene solicitudes que se creen desde la aplicación. Se conservan las cuentas de acceso de demostración para poder entrar a cada perfil.
+## Funcionalidades
 
-Requisitos: Node.js 20 o superior.
+- Clientes: registro, inicio de sesión, recuperación de contraseña por correo, creación y consulta de sus tickets.
+- Ejecutivos: consulta y gestión de tickets, creación para clientes, asignación de personal y evaluación de riesgo.
+- Soporte: consulta de tickets asignados, actualización de estado y registro de soluciones.
+- Administración: resumen de tickets y gestión de cuentas, feriados, sucursales, empresas, contratos, tipos de servicio, categorías de equipos y personal operativo.
+- Reportes CSV y PDF según los permisos y filtros del panel. Los datos se actualizan al abrir el resumen o al solicitar una actualización; no hay actualización automática.
+- Las rutas `/preview/client`, `/preview/executive`, `/preview/support` y `/preview/admin` son vistas públicas de demostración, no paneles con datos reales.
 
-En PowerShell, desde la carpeta del proyecto:
+## Requisitos
 
-```powershell
-cd backend
-Copy-Item .env.example .env
-npm install
-npm run dev
-```
-
-Con el servidor activo en `http://localhost:4000`, abre `index.html`, inicia sesión y crea un ticket desde el dashboard cliente. El panel ejecutivo y el administrativo leerán los tickets persistidos. La API de tickets requiere sesión.
-
-Usuarios de demostración:
-
-| Perfil | Correo | Contraseña |
-| --- | --- | --- |
-| Cliente | cliente@empresa.cl | Cliente123 |
-| Ejecutivo de trabajo | ejecutivo.trabajo@empresa.cl | Trabajo123 |
-| Ejecutivo de soporte | ejecutivo.soporte@empresa.cl | Soporte123 |
-| Administrador | admin@empresa.cl | Admin123 |
-
-La ruta de la base puede cambiarse con `DATABASE_PATH` en `backend/.env`. El archivo SQLite local y las dependencias instaladas se excluyen de Git.
+- Python 3.12 o posterior, compatible con las dependencias instaladas.
+- Node.js compatible con Angular 22: `^22.22.3`, `^24.15.0` o `>=26.0.0`, y npm.
+- PostgreSQL con la base y el esquema existentes.
+- Servidor SMTP para recuperación de contraseñas y notificaciones.
