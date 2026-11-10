@@ -151,15 +151,16 @@
     @else if (visibleTickets().length) {
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Código</th><th>Título</th><th>Categoría</th>
+          <thead><tr>@if (!hideCode()) { <th>Código</th> }<th>Título</th><th>Categoría</th>
             @if (area() !== 'client') { <th>Cliente</th><th>Prioridad</th><th>Personal asignado</th> }
             <th>Estado</th>@if (view() === 'overview' && area() !== 'client') { <th>Riesgo</th> }
             @if (view() === 'tickets' && (area() === 'executive' || area() === 'support')) { <th>Acciones</th> }
           </tr></thead>
           <tbody>
             @for (ticket of visibleTickets(); track ticket.id) {
-              <tr><td>{{ ticket.code || '#' + ticket.id }}</td><td>{{ ticket.title }}
-                <details><summary>Ver descripción</summary><p class="description">{{ ticket.description }}</p>
+              <tr>@if (!hideCode()) { <td>{{ ticket.code || '#' + ticket.id }}</td> }<td>{{ ticket.title }}
+                <details><summary>{{ hideCode() ? 'Ver código y descripción' : 'Ver descripción' }}</summary>
+                  @if (hideCode()) { <p><strong>Código:</strong> {{ ticket.code || '#' + ticket.id }}</p> }<p class="description">{{ ticket.description }}</p>
                   @if (ticket.resolution) { <p><strong>Solución:</strong></p><p class="description">{{ ticket.resolution }}</p> }
                 </details></td>
                 <td>{{ ticket.category_name ?? 'Sin categoría' }}</td>
@@ -184,6 +185,11 @@
                   </td>
                 }
               </tr>
+              @if (view() === 'tickets' && (area() === 'executive' || area() === 'support') && editing()?.id === ticket.id) {
+                <tr class="edit-row"><td colspan="8">
+                  <ng-container [ngTemplateOutlet]="editForm" [ngTemplateOutletContext]="{ $implicit: editing() }" />
+                </td></tr>
+              }
             }
           </tbody>
         </table>
@@ -191,9 +197,8 @@
     }
   </section>
 }
-@if (view() === 'tickets' && (area() === 'executive' || area() === 'support')) {
-@if (editing(); as ticket) {
-  <section class="panel">
+<ng-template #editForm let-ticket>
+  <section class="edit-panel">
     <h2>Editar {{ ticket.code || '#' + ticket.id }}</h2>
     <form class="ticket-form" (ngSubmit)="saveEdit()">
       <label>Estado<select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)" name="status">
@@ -235,5 +240,4 @@
         <button type="button" class="button button-quiet" (click)="editing.set(null)" [disabled]="saving()">Cancelar</button></div>
     </form>
   </section>
-}
-}
+</ng-template>

@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, OnChanges, OnInit, output, signal, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -8,7 +9,7 @@ import { createTicketCsv, createTicketPdf, ReportTicket } from './ticket-report'
 
 @Component({
   selector: 'app-real-tickets',
-  imports: [FormsModule],
+  imports: [FormsModule, NgTemplateOutlet],
   templateUrl: './views/real-tickets.component.html',
   styleUrls: ['./views/real-tickets.css', './views/overview.css'],
 })
@@ -59,6 +60,7 @@ export class RealTicketsComponent implements OnInit, OnChanges {
       (!this.statusFilter() || ticket.status === this.statusFilter())
       && (!term || `${ticket.code ?? ticket.id} ${ticket.title} ${ticket.client_name ?? ''} ${ticket.client_email ?? ''}`.toLocaleLowerCase('es').includes(term)));
   });
+  readonly hideCode = computed(() => this.area() === 'executive' || this.area() === 'support');
   readonly stats = computed(() => {
     const tickets = this.visibleTickets();
     return { total: tickets.length, open: tickets.filter((ticket) => ticket.status === 'Abierto').length,
